@@ -34,7 +34,12 @@ export default function LoginPage() {
             }
 
             // Success
-            router.push('/');
+            // Success
+            if (data.role === 'admin') {
+                router.push('/admin');
+            } else {
+                router.push('/');
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -58,13 +63,13 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">College Email</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">College Email or Username</label>
                         <input
-                            type="email"
+                            type="text"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="23cp045@bvmengineering.ac.in"
+                            placeholder="Email or 'admin'"
                             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-white placeholder-slate-500 transition-all"
                             required
                         />

@@ -11,14 +11,15 @@ const UserSchema = new mongoose.Schema({
         required: [true, 'Please provide an email'],
         unique: true,
         lowercase: true,
-        match: [
-            /^\d{2}[a-zA-Z]{2}\d{3}@bvmengineering\.ac\.in$/,
-            'Please provide a valid college email (e.g., 23cp045@bvmengineering.ac.in)',
-        ],
     },
     password: {
         type: String,
         required: [true, 'Please provide a password'],
+    },
+    role: {
+        type: String,
+        enum: ['student', 'volunteer', 'admin'],
+        default: 'student',
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
