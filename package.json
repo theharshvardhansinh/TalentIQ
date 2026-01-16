@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@upstash/redis": "^1.36.1",
     "bcryptjs": "^3.0.3",
     "cookie": "^1.1.1",
     "dotenv": "^17.2.3",
