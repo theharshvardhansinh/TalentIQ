@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import CreateContestForm from '@/app/components/CreateContestForm';
 import AddProblemForm from '@/app/components/AddProblemForm';
 
-export default function DashboardClient({ initialRole }) {
+export default function DashboardClient({ initialRole, userId }) {
     const [contests, setContests] = useState({ live: [], upcoming: [], past: [] });
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('upcoming');
@@ -51,6 +51,26 @@ export default function DashboardClient({ initialRole }) {
         alert("Problem added successfully!");
     };
 
+    const registerForContest = async (contestId) => {
+        try {
+            const res = await fetch('/api/contest/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contestId })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Refresh list or update local state manually for speed
+                fetchContests();
+            } else {
+                alert(data.error || "Registration failed");
+            }
+        } catch (error) {
+            console.error("Registration error", error);
+        }
+    };
+
     const formatDuration = (start, end) => {
         const diff = new Date(end) - new Date(start);
         const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -64,6 +84,7 @@ export default function DashboardClient({ initialRole }) {
         const isUpcoming = status === 'upcoming';
         const isPast = status === 'past';
         const canManage = initialRole === 'volunteer' || initialRole === 'admin';
+        const isRegistered = contest.registeredUsers && contest.registeredUsers.includes(userId);
 
         return (
             <div className={`relative group bg-white/5 border border-white/10 rounded-2xl p-6 transition-all hover:border-white/20 hover:-translate-y-1 hover:shadow-xl ${isLive ? 'shadow-emerald-500/10 border-emerald-500/20' : ''
@@ -121,9 +142,18 @@ export default function DashboardClient({ initialRole }) {
                         </Link>
                     )}
                     {isUpcoming && !canManage && (
-                        <button className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl transition-all border border-white/10 hover:border-white/20 flex items-center justify-center gap-2">
-                            Register Now
-                        </button>
+                        isRegistered ? (
+                            <button disabled className="flex-1 py-3 bg-emerald-500/10 text-emerald-500 font-semibold rounded-xl border border-emerald-500/20 cursor-default flex items-center justify-center gap-2">
+                                Registered ✅
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => registerForContest(contest._id)}
+                                className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl transition-all border border-white/10 hover:border-white/20 flex items-center justify-center gap-2"
+                            >
+                                Register Now
+                            </button>
+                        )
                     )}
                     {isPast && (
                         <Link href={`/contest/${contest._id}`} className="w-full">

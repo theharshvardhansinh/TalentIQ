@@ -1,11 +1,12 @@
 
 'use client';
-import { useState } from 'react';
-import { Loader2, Plus, Trash2, Code2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2, Plus, Trash2, Code2, Save } from 'lucide-react';
 
-export default function AddProblemForm({ contestId, onSuccess }) {
+export default function AddProblemForm({ contestId, onSuccess, initialData = null, problemId = null }) {
+    const isEditMode = !!problemId;
     const [loading, setLoading] = useState(false);
-    const [testCases, setTestCases] = useState([{ input: '', output: '', isPublic: false }]); // Start with 1 empty case
+    const [testCases, setTestCases] = useState([{ input: '', output: '', isPublic: false }]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -15,6 +16,24 @@ export default function AddProblemForm({ contestId, onSuccess }) {
         inputFormat: '',
         outputFormat: ''
     });
+
+    // Initialize with data if in edit mode
+    useEffect(() => {
+        if (initialData) {
+            setFormData({
+                title: initialData.title || '',
+                description: initialData.description || '',
+                difficulty: initialData.difficulty || 'Medium',
+                constraints: initialData.constraints || '',
+                tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : (initialData.tags || ''),
+                inputFormat: initialData.inputFormat || '',
+                outputFormat: initialData.outputFormat || ''
+            });
+            if (initialData.testCases && initialData.testCases.length > 0) {
+                setTestCases(initialData.testCases);
+            }
+        }
+    }, [initialData]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -44,35 +63,42 @@ export default function AddProblemForm({ contestId, onSuccess }) {
 
         // Prepare payload
         const payload = {
-            contestId,
+            contestId, // Only used for POST (Add)
             ...formData,
             testCases: testCases.filter(tc => tc.input.trim() && tc.output.trim()), // Filter empty
             tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
         };
 
         try {
-            const res = await fetch('/api/problem/add', {
-                method: 'POST',
+            const url = isEditMode ? `/api/problem/manage/${problemId}` : '/api/problem/add';
+            const method = isEditMode ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
+
             if (data.success) {
                 if (onSuccess) onSuccess();
-                alert('Problem added successfully!');
-                // Reset partly
-                setFormData({
-                    title: '',
-                    description: '',
-                    difficulty: 'Medium',
-                    constraints: '',
-                    tags: '',
-                    inputFormat: '',
-                    outputFormat: ''
-                });
-                setTestCases([{ input: '', output: '', isPublic: false }]);
+                alert(isEditMode ? 'Problem updated successfully!' : 'Problem added successfully!');
+
+                if (!isEditMode) {
+                    // Reset only if adding new
+                    setFormData({
+                        title: '',
+                        description: '',
+                        difficulty: 'Medium',
+                        constraints: '',
+                        tags: '',
+                        inputFormat: '',
+                        outputFormat: ''
+                    });
+                    setTestCases([{ input: '', output: '', isPublic: false }]);
+                }
             } else {
-                alert(data.error || 'Failed to add problem');
+                alert(data.error || 'Failed to save problem');
             }
         } catch (error) {
             console.error(error);
@@ -86,7 +112,7 @@ export default function AddProblemForm({ contestId, onSuccess }) {
         <form onSubmit={handleSubmit} className="space-y-6 bg-slate-900 border border-white/10 p-6 rounded-xl mt-6">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <Code2 className="w-5 h-5 text-indigo-400" />
-                Add Problem to Contest
+                {isEditMode ? 'Edit Problem' : 'Add Problem to Contest'}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -152,18 +178,39 @@ export default function AddProblemForm({ contestId, onSuccess }) {
                     />
                 </div>
 
+                <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Input Format</label>
+                    <textarea
+                        name="inputFormat"
+                        value={formData.inputFormat}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 outline-none h-20 font-mono text-sm"
+                        placeholder="The first line contains..."
+                    />
+                </div>
+                <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Output Format</label>
+                    <textarea
+                        name="outputFormat"
+                        value={formData.outputFormat}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 outline-none h-20 font-mono text-sm"
+                        placeholder="Print the answer..."
+                    />
+                </div>
+
             </div>
 
             <div className="border-t border-white/10 pt-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-semibold text-slate-200">Hidden Test Cases</h4>
+                    <h4 className="font-semibold text-slate-200">Test Cases</h4>
                     <button
                         type="button"
                         onClick={addTestCase}
-                        disabled={testCases.length >= 5}
+                        disabled={testCases.length >= 10}
                         className="text-xs bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded hover:bg-indigo-500/20 disabled:opacity-50"
                     >
-                        + Add Case ({testCases.length}/5)
+                        + Add Case ({testCases.length}/10)
                     </button>
                 </div>
 
@@ -215,9 +262,14 @@ export default function AddProblemForm({ contestId, onSuccess }) {
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all flex items-center justify-center disabled:opacity-50 shadow-lg shadow-indigo-500/25"
+                className={`w-full py-3 text-white font-bold rounded-lg transition-all flex items-center justify-center disabled:opacity-50 shadow-lg ${isEditMode ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/25'}`}
             >
-                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Add Problem'}
+                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : (
+                    <span className="flex items-center gap-2">
+                        {isEditMode ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        {isEditMode ? 'Update Problem' : 'Add Problem'}
+                    </span>
+                )}
             </button>
         </form>
     );

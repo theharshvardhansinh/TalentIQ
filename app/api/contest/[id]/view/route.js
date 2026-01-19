@@ -32,6 +32,8 @@ export async function GET(req, { params }) {
         const isUpcoming = now < startTime;
         const isEnded = now >= endTime;
 
+        const isRegistered = contest.registeredUsers && contest.registeredUsers.includes(session.user.id);
+
         // 2. Security Check
         // If student AND contest hasn't started, hide problems
         if (isStudent && isUpcoming) {
@@ -47,6 +49,7 @@ export async function GET(req, { params }) {
                     questionCount: contest.questionCount,
                     status: 'upcoming',
                     isEnded: false,
+                    isRegistered: isRegistered,
                     userScore: 0,
                     problems: [] // Explicitly empty
                 }
@@ -105,7 +108,8 @@ export async function GET(req, { params }) {
                 status: isEnded ? 'past' : (isUpcoming ? 'upcoming' : 'live'),
                 isEnded: isEnded,
                 userScore: earnedScore,
-                totalProblems: contest.problems.length
+                totalProblems: contest.problems.length,
+                isRegistered: isRegistered
             }
         });
 

@@ -5,7 +5,7 @@ import { Loader2, ArrowLeft, Trophy, Medal, Eye, Code2, X, Clock } from 'lucide-
 import Link from 'next/link';
 import Editor from '@monaco-editor/react';
 
-export default function LeaderboardPage({ params: paramsPromise }) {
+export default function LeaderboardPage({ params: paramsPromise, showBackButton = true, backDestination }) {
     const params = use(paramsPromise);
     const [loading, setLoading] = useState(true);
     const [leaderboard, setLeaderboard] = useState([]);
@@ -67,15 +67,19 @@ export default function LeaderboardPage({ params: paramsPromise }) {
         return `${name.substring(0, 3)}***@${domain}`;
     };
 
+    const backLink = backDestination || `/contest/${params.contestId}`;
+
     return (
         <div className="min-h-screen bg-black text-white p-6">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
-                        <Link href={`/contest/${params.contestId}`} className="bg-white/10 p-2 rounded-lg hover:bg-white/20 transition-colors">
-                            <ArrowLeft className="w-5 h-5 text-white" />
-                        </Link>
+                        {showBackButton && (
+                            <Link href={backLink} className="bg-white/10 p-2 rounded-lg hover:bg-white/20 transition-colors">
+                                <ArrowLeft className="w-5 h-5 text-white" />
+                            </Link>
+                        )}
                         <div>
                             <h1 className="text-2xl font-bold flex items-center gap-2">
                                 <Trophy className="w-6 h-6 text-yellow-500" /> Leaderboard
@@ -239,4 +243,3 @@ export default function LeaderboardPage({ params: paramsPromise }) {
         </div>
     );
 }
-

@@ -1,9 +1,25 @@
 
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
-import Problem from '@/models/Problem'; // Ensure registered
+import Problem from '@/models/Problem';
 import { getSession } from '@/lib/auth';
-import { executeCode } from '@/lib/piston';
+
+const JUDGE0_URL = process.env.JUDGE0_URL || 'http://localhost:2358';
+
+function getLanguageId(lang) {
+    const map = {
+        'python': 71,
+        'javascript': 63,
+        'cpp': 54,
+        'java': 62,
+        'c': 50
+    };
+    return map[lang.toLowerCase()] || 71;
+}
+
+// Base64 Helpers
+const toBase64 = (str) => Buffer.from(str || "").toString('base64');
+const fromBase64 = (str) => Buffer.from(str || "", 'base64').toString('utf-8');
 
 export async function POST(req) {
     try {
@@ -21,16 +37,14 @@ export async function POST(req) {
 
         await dbConnect();
 
-        // 1. Fetch Problem & Test Cases
         const problem = await Problem.findOne({ slug: problemSlug });
         if (!problem) {
             return NextResponse.json({ error: 'Problem not found' }, { status: 404 });
         }
 
-        // 2. Filter for Public Test Cases (Run Mode)
+        // Filter for Public Test Cases
         let casesToRun = problem.testCases.filter(tc => tc.isPublic);
 
-        // Fallback: If no public cases marked, use the first one so the user can at least run something
         if (casesToRun.length === 0 && problem.testCases.length > 0) {
             casesToRun = [problem.testCases[0]];
         }
@@ -39,57 +53,95 @@ export async function POST(req) {
             return NextResponse.json({ error: 'No test cases available to run' }, { status: 400 });
         }
 
-        // 3. The Execution Loop (No DB persistence)
-        let detailResults = [];
-        let finalStatus = 'Accepted'; // Optimistic default for the run session
+        // Execute Parallel Single Submissions (Base64)
+        const languageId = getLanguageId(language);
 
-        for (const [index, testCase] of casesToRun.entries()) {
+        const submissionPromises = casesToRun.map(async (tc) => {
+            const payload = {
+                source_code: toBase64(code),
+                language_id: languageId,
+                stdin: toBase64(tc.input),
+                expected_output: toBase64(tc.output)
+            };
+
             try {
-                // Execute code against this test case
-                const result = await executeCode(language, code, testCase.input);
-                const runData = result;
+                // Base64 Encoded Request
+                const res = await fetch(`${JUDGE0_URL}/submissions?base64_encoded=true&wait=true`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                // Check for Runtime/Compilation Error
-                if (runData.code !== 0) {
-                    return NextResponse.json({
-                        success: true,
-                        status: 'Runtime Error',
-                        message: runData.stderr || runData.stdout,
-                        results: []
-                    });
+                if (!res.ok) {
+                    return {
+                        status: { id: 13, description: `API Error: ${res.statusText}` },
+                        stdout: null, stderr: null, compile_output: null, message: "Judge0 Request Failed"
+                    };
                 }
+                return await res.json();
+            } catch (err) {
+                return {
+                    status: { id: 13, description: "Connection Error" },
+                    stdout: null, stderr: null, compile_output: null, message: err.message
+                };
+            }
+        });
 
-                const actualOutput = (runData.stdout || "").trim().replace(/\r\n/g, '\n');
-                const expectedOutput = (testCase.output || "").trim().replace(/\r\n/g, '\n');
-                const isPassed = actualOutput === expectedOutput;
+        const judgeResults = await Promise.all(submissionPromises);
 
-                if (!isPassed) {
-                    finalStatus = 'Wrong Answer';
-                }
+        let passedCount = 0;
+        let finalStatus = 'Accepted';
+        const detailResults = [];
 
-                // Add to detailed results
+        for (let i = 0; i < judgeResults.length; i++) {
+            const res = judgeResults[i];
+            const testCase = casesToRun[i];
+
+            if (res.token && !res.status) {
                 detailResults.push({
-                    id: index,
-                    status: isPassed ? 'Passed' : 'Failed',
+                    id: i,
+                    status: 'Failed',
                     input: testCase.input,
                     expectedOutput: testCase.output,
-                    actualOutput: runData.stdout || ""
+                    actualOutput: "In Queue (Timeout)",
+                    message: "Execution timed out."
                 });
-
-            } catch (execError) {
-                console.error("Execution Error:", execError);
-                return NextResponse.json({
-                    success: true,
-                    status: 'System Error',
-                    message: 'Execution failed internal error'
-                });
+                if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
+                continue;
             }
+
+            const isPassed = res.status && res.status.id === 3;
+
+            // Decode Outputs
+            let actualOutput = fromBase64(res.stdout).trim();
+            let errorOutput = fromBase64(res.stderr) || fromBase64(res.compile_output) || fromBase64(res.message) || "";
+
+            if (isPassed) {
+                passedCount++;
+            } else {
+                if (finalStatus === 'Accepted') {
+                    const judgeStatus = res.status ? res.status.description : 'Unknown Error';
+                    if (judgeStatus === 'Wrong Answer') finalStatus = 'Wrong Answer';
+                    else if (judgeStatus === 'Compilation Error') finalStatus = 'Compilation Error';
+                    else if (judgeStatus === 'Time Limit Exceeded') finalStatus = 'Time Limit Exceeded';
+                    else finalStatus = 'Runtime Error';
+                }
+            }
+
+            detailResults.push({
+                id: i,
+                status: isPassed ? 'Passed' : 'Failed',
+                input: testCase.input,
+                expectedOutput: testCase.output,
+                actualOutput: actualOutput || errorOutput,
+                message: res.status ? res.status.description : 'Error'
+            });
         }
 
         return NextResponse.json({
             success: true,
             status: finalStatus,
-            passed: detailResults.filter(r => r.status === 'Passed').length,
+            passed: passedCount,
             total: casesToRun.length,
             results: detailResults
         });

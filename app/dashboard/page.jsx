@@ -17,6 +17,11 @@ export default async function DashboardPage() {
     const { user: sessionUser } = session;
     const userId = sessionUser.id || sessionUser._id;
 
+    // Redirect Volunteers/Admins to the new Control Center
+    if (sessionUser.role === 'volunteer' || sessionUser.role === 'admin') {
+        redirect('/dashboard/volunteer');
+    }
+
     await dbConnect();
 
     // 1. Stats
@@ -71,7 +76,7 @@ export default async function DashboardPage() {
                 <StatsSection solvedCount={solvedCount} />
 
                 {/* Unified Dashboard Client for Contests & Volunteer Actions */}
-                <DashboardClient initialRole={sessionUser.role} />
+                <DashboardClient initialRole={sessionUser.role} userId={userId} />
             </main>
         </div>
     );

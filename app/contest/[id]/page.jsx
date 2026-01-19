@@ -115,6 +115,29 @@ export default function ContestDetailPage({ params: paramsPromise }) {
             </div>
         );
     }
+    // --- Guard: Registration Check ---
+    if (status !== 'past' && !contest.isRegistered) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center text-white p-6">
+                <div className="max-w-md w-full bg-white/5 border border-white/10 p-8 rounded-2xl text-center space-y-6 backdrop-blur-sm">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <AlertCircle className="w-8 h-8 text-red-500" />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400">Access Denied</h2>
+                        <p className="text-slate-400 mt-2">
+                            You did not register for <span className="text-white font-semibold">{contest.title}</span>.
+                        </p>
+                    </div>
+                    <Link href="/dashboard" className="block w-full">
+                        <button className="w-full py-3 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl transition-all border border-white/5">
+                            Return to Dashboard
+                        </button>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     // --- State 1: Upcoming (Secure Lobby) ---
     if (status === 'upcoming') {
@@ -361,15 +384,7 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                                         />
                                     </div>
                                 </div>
-                            </div>
-                            <div className="mt-4 pt-4 border-t border-white/5">
-                                <Link href={`/dashboard/student/contest/${contest._id}/leaderboard`}>
-                                    <button className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-300 hover:text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                                        <Trophy className="w-4 h-4 text-yellow-500" /> View Leaderboard
-                                    </button>
-                                </Link>
-                            </div>
-                        </div>
+                            </div>                        </div>
 
                         <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-white/5 rounded-xl p-6">
                             <h4 className="font-bold text-indigo-300 text-sm mb-2">Instructions</h4>

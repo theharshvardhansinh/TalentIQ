@@ -43,6 +43,11 @@ const ContestSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Problem',
     }],
+    registeredUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: []
+    }],
 }, { timestamps: true });
 
 export default mongoose.models.Contest || mongoose.model('Contest', ContestSchema);

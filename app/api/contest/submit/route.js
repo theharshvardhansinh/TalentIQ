@@ -4,7 +4,24 @@ import dbConnect from '@/lib/db';
 import Submission from '@/models/Submission';
 import Problem from '@/models/Problem';
 import { getSession } from '@/lib/auth';
-import { executeCode } from '@/lib/piston';
+
+const JUDGE0_URL = process.env.JUDGE0_URL || 'http://localhost:2358';
+
+// Helper to map language slugs to Judge0 IDs
+function getLanguageId(lang) {
+    const map = {
+        'python': 71,     // Python (3.8.1)
+        'javascript': 63, // JavaScript (Node.js 12.14.0)
+        'cpp': 54,        // C++ (GCC 9.2.0)
+        'java': 62,       // Java (OpenJDK 13.0.1)
+        'c': 50           // C (GCC 9.2.0)
+    };
+    return map[lang.toLowerCase()] || 71;
+}
+
+// Base64 Helpers
+const toBase64 = (str) => Buffer.from(str || "").toString('base64');
+const fromBase64 = (str) => Buffer.from(str || "", 'base64').toString('utf-8');
 
 export async function POST(req) {
     try {
@@ -14,7 +31,7 @@ export async function POST(req) {
         }
 
         const body = await req.json();
-        const { contestId, problemSlug, code, language } = body;
+        const { userId, contestId, problemSlug, code, language } = body;
 
         if (!problemSlug || !code || !language) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
@@ -32,84 +49,129 @@ export async function POST(req) {
             return NextResponse.json({ error: 'No test cases to judge against' }, { status: 400 });
         }
 
-        // 2. Create Submission (Status: Pending)
+        // 2. Prepare Parallel Submissions (Single Submission API + Base64 Encoding)
+        // We use Single Submissions to avoid Batch API "No such file" errors.
+        // We use Base64 Encoding to avoid "UTF-8" conversion errors.
+        const languageId = getLanguageId(language);
+
+        const submissionPromises = problem.testCases.map(async (tc) => {
+            const payload = {
+                source_code: toBase64(code),
+                language_id: languageId,
+                stdin: toBase64(tc.input),
+                expected_output: toBase64(tc.output)
+            };
+
+            try {
+                // Use base64_encoded=true
+                const res = await fetch(`${JUDGE0_URL}/submissions?base64_encoded=true&wait=true`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    return {
+                        status: { id: 13, description: `API Error: ${res.statusText}` },
+                        stdout: null, stderr: null, compile_output: null, message: "Judge0 Request Failed"
+                    };
+                }
+                return await res.json();
+            } catch (err) {
+                console.error("Judge0 Fetch Error:", err);
+                return {
+                    status: { id: 13, description: "Connection Error" },
+                    stdout: null, stderr: null, compile_output: null, message: err.message
+                };
+            }
+        });
+
+        // 3. Execute All
+        const judgeResults = await Promise.all(submissionPromises);
+
+        // Debug logging
+        console.log('Judge0 Parallel Results (Base64):', JSON.stringify(judgeResults, null, 2));
+
+        // 4. Process Results
+        let passedCount = 0;
+        let finalStatus = 'Accepted';
+        const detailResults = [];
+
+        for (let i = 0; i < judgeResults.length; i++) {
+            const res = judgeResults[i];
+            const testCase = problem.testCases[i];
+
+            // Check for timeouts
+            if (res.token && !res.status) {
+                detailResults.push({
+                    testCaseId: i,
+                    status: 'Time Limit Exceeded',
+                    input: testCase.input,
+                    expectedOutput: testCase.output,
+                    actualOutput: "",
+                    message: "Execution timed out (In Queue)"
+                });
+                if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
+                continue;
+            }
+
+            // Safety Check
+            if (!res || !res.status) {
+                detailResults.push({
+                    testCaseId: i,
+                    status: 'System Error',
+                    input: testCase.input,
+                    expectedOutput: testCase.output,
+                    actualOutput: "",
+                    message: res.message || "Judge0 returned incomplete data."
+                });
+                if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
+                continue;
+            }
+
+            // Status ID 3 means "Accepted"
+            const isPassed = res.status.id === 3;
+
+            // Decode Output
+            let actualOutput = fromBase64(res.stdout).trim();
+            let errorOutput = fromBase64(res.stderr) || fromBase64(res.compile_output) || fromBase64(res.message) || "";
+
+            if (isPassed) {
+                passedCount++;
+            } else {
+                if (finalStatus === 'Accepted') {
+                    const judgeStatus = res.status.description;
+                    if (judgeStatus === 'Wrong Answer') finalStatus = 'Wrong Answer';
+                    else if (judgeStatus === 'Compilation Error') finalStatus = 'Compilation Error';
+                    else if (judgeStatus === 'Time Limit Exceeded') finalStatus = 'Time Limit Exceeded';
+                    else finalStatus = 'Runtime Error';
+                }
+            }
+
+            detailResults.push({
+                testCaseId: i,
+                status: isPassed ? 'Passed' : 'Failed',
+                input: testCase.input,
+                expectedOutput: testCase.output,
+                actualOutput: actualOutput || errorOutput,
+                message: res.status.description
+            });
+        }
+
+        // 5. Save Submission
         const submission = await Submission.create({
             userId: session.user.id,
             problemSlug,
             code,
             language,
-            status: 'Pending',
+            status: finalStatus,
             contestId: contestId || null
         });
 
-        // 3. The Judging Loop
-        let passedCases = 0;
-        let finalStatus = 'Accepted';
-        let detailResults = [];
-
-        for (const [index, testCase] of problem.testCases.entries()) {
-            try {
-                // Execute code against this test case
-                const result = await executeCode(language, code, testCase.input);
-
-                // My piston wrapper returns the 'run' object directly now, so result is the run object.
-                // But let's be safe: Piston response { run: { ... } } or wrapper might return run. 
-                // Based on previous step, executeCode returns `data.run`.
-
-                const runData = result;
-
-                // Check for Runtime/Compilation Error
-                if (runData.code !== 0) {
-                    finalStatus = 'Runtime Error';
-                    // We stop detailed testing on the first crash to save resources and return the error
-                    return NextResponse.json({
-                        success: true,
-                        status: 'Runtime Error',
-                        message: runData.stderr || runData.stdout, // Sometimes error is in stdout for some langs
-                        passed: passedCases,
-                        total: problem.testCases.length,
-                        results: []
-                    });
-                }
-
-                const actualOutput = (runData.stdout || "").trim().replace(/\r\n/g, '\n');
-                const expectedOutput = (testCase.output || "").trim().replace(/\r\n/g, '\n');
-                const isPassed = actualOutput === expectedOutput;
-
-                if (isPassed) {
-                    passedCases++;
-                } else {
-                    if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
-                }
-
-                // Add to detailed results
-                detailResults.push({
-                    id: index,
-                    status: isPassed ? 'Passed' : 'Failed',
-                    input: testCase.input,
-                    expectedOutput: testCase.output, // Send raw for display
-                    actualOutput: runData.stdout || "" // Send raw output (not trimmed) to show user exactly what happened
-                });
-
-            } catch (execError) {
-                console.error("Execution Error:", execError);
-                return NextResponse.json({
-                    success: true,
-                    status: 'System Error',
-                    message: 'Execution failed internal error'
-                });
-            }
-        }
-
-        // 4. Update DB
-        submission.status = finalStatus;
-        await submission.save();
-
         return NextResponse.json({
-            success: true,
             status: finalStatus,
-            passed: passedCases,
-            total: problem.testCases.length,
+            passedCount,
+            totalCount: problem.testCases.length,
             results: detailResults
         });
 
