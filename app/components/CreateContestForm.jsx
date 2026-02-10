@@ -1,7 +1,6 @@
-
 'use client';
 import { useState } from 'react';
-import { Loader2, Calendar, Layout, Users } from 'lucide-react';
+import { Loader2, Calendar, Layout, Users, FileQuestion, Clock, Check } from 'lucide-react';
 
 export default function CreateContestForm({ onSuccess }) {
     const [loading, setLoading] = useState(false);
@@ -24,11 +23,12 @@ export default function CreateContestForm({ onSuccess }) {
     const handleYearToggle = (year) => {
         setFormData(prev => {
             const current = [...prev.yearLevel];
+            
             if (year === 'All') {
                 return { ...prev, yearLevel: ['All'] };
             }
 
-            // If selecting a specific year, remove 'All'
+            // If selecting a specific year, first remove 'All' if it exists
             let newYears = current.filter(y => y !== 'All');
 
             if (newYears.includes(year)) {
@@ -37,8 +37,7 @@ export default function CreateContestForm({ onSuccess }) {
                 newYears.push(year);
             }
 
-            // If nothing selected or manually clearing everything, maybe default to All or requried logic?
-            // User requirement said simple select. Let's keep it robust.
+            // If no years left, default back to 'All'
             if (newYears.length === 0) return { ...prev, yearLevel: ['All'] };
 
             return { ...prev, yearLevel: newYears };
@@ -57,7 +56,6 @@ export default function CreateContestForm({ onSuccess }) {
             const data = await res.json();
             if (data.success) {
                 if (onSuccess) onSuccess(data.data);
-                alert('Contest created successfully!');
                 // Reset form
                 setFormData({
                     title: '',
@@ -79,106 +77,165 @@ export default function CreateContestForm({ onSuccess }) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 bg-slate-900 border border-white/10 p-6 rounded-xl">
-            <h2 className="text-xl font-bold text-white mb-4">Create New Contest</h2>
+        <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-white tracking-tight">Create New Contest</h2>
+                <p className="text-slate-400 text-sm">Fill in the details to schedule a new coding challenge.</p>
+            </div>
 
-            <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Contest Title</label>
-                <div className="relative">
-                    <Layout className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
+            <div className="space-y-6">
+                {/* Title Section */}
+                <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Contest Title</label>
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Layout className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                        </div>
+                        <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none"
+                            placeholder="e.g. Weekly Contest #5"
+                            required
+                        />
+                    </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
                         onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                        placeholder="Weekly Contest #5"
-                        required
+                        className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none h-32 resize-none"
+                        placeholder="Provide brief details about the contest rules and topics..."
                     />
                 </div>
-            </div>
 
-            <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Description</label>
-                <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none h-24"
-                    placeholder="Brief details about the contest..."
-                />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-1">Start Time</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-                        <input
-                            type="datetime-local"
-                            name="startTime"
-                            value={formData.startTime}
-                            onChange={handleChange}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                            required
-                        />
+                {/* Time Settings */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Start Time</label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Calendar className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                            </div>
+                            <input
+                                type="datetime-local"
+                                name="startTime"
+                                value={formData.startTime}
+                                onChange={handleChange}
+                                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none [color-scheme:dark]"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">End Time</label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Clock className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                            </div>
+                            <input
+                                type="datetime-local"
+                                name="endTime"
+                                value={formData.endTime}
+                                onChange={handleChange}
+                                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none [color-scheme:dark]"
+                                required
+                            />
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-400 mb-1">End Time</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-                        <input
-                            type="datetime-local"
-                            name="endTime"
-                            value={formData.endTime}
-                            onChange={handleChange}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                            required
-                        />
+
+                {/* Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Target Audience</label>
+                        <div className="flex flex-wrap gap-2">
+                            {yearOptions.map(year => {
+                                const isSelected = formData.yearLevel.includes(year);
+                                return (
+                                    <button
+                                        type="button"
+                                        key={year}
+                                        onClick={() => handleYearToggle(year)}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border flex items-center gap-1.5 ${
+                                            isSelected
+                                                ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/50 shadow-[0_0_10px_rgba(99,102,241,0.2)]'
+                                                : 'bg-black/50 text-slate-400 border-white/10 hover:bg-white/5 hover:border-white/20'
+                                        }`}
+                                    >
+                                        {year}
+                                        {isSelected && <Check className="w-3.5 h-3.5" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Total Questions</label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FileQuestion className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                            </div>
+                            <input
+                                type="number"
+                                name="questionCount"
+                                value={formData.questionCount}
+                                onChange={handleChange}
+                                min="1"
+                                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none"
+                                required
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Target Audience</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                    {yearOptions.map(year => (
-                        <button
-                            type="button"
-                            key={year}
-                            onClick={() => handleYearToggle(year)}
-                            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${formData.yearLevel.includes(year)
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                                }`}
-                        >
-                            {year}
-                        </button>
-                    ))}
-                </div>
+            <div className="pt-6 border-t border-white/10">
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.99]"
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 className="animate-spin w-5 h-5" />
+                            Creating...
+                        </>
+                    ) : (
+                        <>
+                            Create Contest
+                            <ArrowUpRightIcon className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        </>
+                    )}
+                </button>
             </div>
-
-            <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Total Questions</label>
-                <input
-                    type="number"
-                    name="questionCount"
-                    value={formData.questionCount}
-                    onChange={handleChange}
-                    min="1"
-                    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                    required
-                />
-            </div>
-
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg hover:shadow-indigo-500/20 text-white font-bold rounded-lg transition-all flex items-center justify-center disabled:opacity-50"
-            >
-                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Create Contest'}
-            </button>
         </form>
     );
+}
+
+function ArrowUpRightIcon(props) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M7 7h10v10" />
+            <path d="M7 17 17 7" />
+        </svg>
+    )
 }

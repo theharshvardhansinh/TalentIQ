@@ -1,10 +1,11 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, Calendar, Trophy, LogOut, Sparkles, Menu, Bell, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function AdminLayout({ children }) {
+    const router = useRouter();
     const pathname = usePathname();
 
     const navigation = [
@@ -13,6 +14,16 @@ export default function AdminLayout({ children }) {
         { name: 'Contests', href: '/admin/contests', icon: Calendar },
         { name: 'Participants', href: '/admin/participants', icon: Trophy },
     ];
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            router.push('/login');
+        } catch (error) {
+            console.error('Logout failed:', error);
+            router.push('/login');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30 font-sans">
@@ -70,7 +81,10 @@ export default function AdminLayout({ children }) {
                     </nav>
 
                     <div className="p-6 border-t border-white/5">
-                        <button className="flex items-center text-gray-400 hover:text-red-400 transition-colors w-full px-4 py-3 rounded-xl hover:bg-red-500/5 group border border-transparent hover:border-red-500/10">
+                        <button 
+                            onClick={handleLogout}
+                            className="flex items-center text-gray-400 hover:text-red-400 transition-colors w-full px-4 py-3 rounded-xl hover:bg-red-500/5 group border border-transparent hover:border-red-500/10"
+                        >
                             <LogOut className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                             <span className="font-medium text-sm">Logout</span>
                         </button>
@@ -79,9 +93,6 @@ export default function AdminLayout({ children }) {
 
                 {/* Main Content */}
                 <main className="flex-1 md:ml-72 flex flex-col min-h-screen">
-                    {/* Top Header */}
-
-
                     {/* Page Content */}
                     <div className="flex-1 p-8 overflow-y-auto">
                         <div className="max-w-7xl mx-auto">

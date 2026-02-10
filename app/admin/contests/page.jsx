@@ -211,9 +211,9 @@ export default function ContestsPage() {
             {/* Modal for Creating Contest */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-slate-900 rounded-2xl border border-white/10 shadow-2xl">
+                    <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-950 rounded-2xl border border-white/10 shadow-2xl">
                         <div className="p-2 flex justify-end">
-                            <button onClick={() => setShowCreateModal(false)} className="p-2 text-slate-500 hover:text-white transition-colors">✕</button>
+                            <button onClick={() => setShowCreateModal(false)} className="p-2 text-slate-500 hover:text-red-500 transition-colors">✕</button>
                         </div>
                         <div className="px-6 pb-6">
                             <CreateContestForm onSuccess={handleContestCreated} />
