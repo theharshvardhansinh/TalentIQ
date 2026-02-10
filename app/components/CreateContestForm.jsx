@@ -28,7 +28,6 @@ export default function CreateContestForm({ onSuccess }) {
                 return { ...prev, yearLevel: ['All'] };
             }
 
-            // If selecting a specific year, first remove 'All' if it exists
             let newYears = current.filter(y => y !== 'All');
 
             if (newYears.includes(year)) {
@@ -37,7 +36,6 @@ export default function CreateContestForm({ onSuccess }) {
                 newYears.push(year);
             }
 
-            // If no years left, default back to 'All'
             if (newYears.length === 0) return { ...prev, yearLevel: ['All'] };
 
             return { ...prev, yearLevel: newYears };
@@ -56,7 +54,6 @@ export default function CreateContestForm({ onSuccess }) {
             const data = await res.json();
             if (data.success) {
                 if (onSuccess) onSuccess(data.data);
-                // Reset form
                 setFormData({
                     title: '',
                     description: '',
@@ -80,23 +77,23 @@ export default function CreateContestForm({ onSuccess }) {
         <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-white tracking-tight">Create New Contest</h2>
-                <p className="text-slate-400 text-sm">Fill in the details to schedule a new coding challenge.</p>
+                <p className="text-[#94A3B8] text-sm">Fill in the details to schedule a new coding challenge.</p>
             </div>
 
             <div className="space-y-6">
                 {/* Title Section */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Contest Title</label>
+                    <label className="block text-sm font-medium text-[#94A3B8] mb-2">Contest Title</label>
                     <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Layout className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                            <Layout className="h-5 w-5 text-[#475569] group-focus-within:text-[#3B82F6] transition-colors" />
                         </div>
                         <input
                             type="text"
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
-                            className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none"
+                            className="w-full pl-10 pr-4 py-3 bg-[#1E293B] border border-[#3B82F6]/10 rounded-xl text-white placeholder-[#475569] focus:ring-2 focus:ring-[#3B82F6]/50 focus:border-[#3B82F6] hover:border-[#3B82F6]/20 transition-all outline-none"
                             placeholder="e.g. Weekly Contest #5"
                             required
                         />
@@ -105,12 +102,12 @@ export default function CreateContestForm({ onSuccess }) {
 
                 {/* Description */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
+                    <label className="block text-sm font-medium text-[#94A3B8] mb-2">Description</label>
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none h-32 resize-none"
+                        className="w-full px-4 py-3 bg-[#1E293B] border border-[#3B82F6]/10 rounded-xl text-white placeholder-[#475569] focus:ring-2 focus:ring-[#3B82F6]/50 focus:border-[#3B82F6] hover:border-[#3B82F6]/20 transition-all outline-none h-32 resize-none"
                         placeholder="Provide brief details about the contest rules and topics..."
                     />
                 </div>
@@ -118,33 +115,33 @@ export default function CreateContestForm({ onSuccess }) {
                 {/* Time Settings */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Start Time</label>
+                        <label className="block text-sm font-medium text-[#94A3B8] mb-2">Start Time</label>
                         <div className="relative group">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Calendar className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                <Calendar className="h-5 w-5 text-[#475569] group-focus-within:text-[#3B82F6] transition-colors" />
                             </div>
                             <input
                                 type="datetime-local"
                                 name="startTime"
                                 value={formData.startTime}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none [color-scheme:dark]"
+                                className="w-full pl-10 pr-4 py-3 bg-[#1E293B] border border-[#3B82F6]/10 rounded-xl text-white focus:ring-2 focus:ring-[#3B82F6]/50 focus:border-[#3B82F6] hover:border-[#3B82F6]/20 transition-all outline-none [color-scheme:dark]"
                                 required
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">End Time</label>
+                        <label className="block text-sm font-medium text-[#94A3B8] mb-2">End Time</label>
                         <div className="relative group">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Clock className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                <Clock className="h-5 w-5 text-[#475569] group-focus-within:text-[#3B82F6] transition-colors" />
                             </div>
                             <input
                                 type="datetime-local"
                                 name="endTime"
                                 value={formData.endTime}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none [color-scheme:dark]"
+                                className="w-full pl-10 pr-4 py-3 bg-[#1E293B] border border-[#3B82F6]/10 rounded-xl text-white focus:ring-2 focus:ring-[#3B82F6]/50 focus:border-[#3B82F6] hover:border-[#3B82F6]/20 transition-all outline-none [color-scheme:dark]"
                                 required
                             />
                         </div>
@@ -154,7 +151,7 @@ export default function CreateContestForm({ onSuccess }) {
                 {/* Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Target Audience</label>
+                        <label className="block text-sm font-medium text-[#94A3B8] mb-2">Target Audience</label>
                         <div className="flex flex-wrap gap-2">
                             {yearOptions.map(year => {
                                 const isSelected = formData.yearLevel.includes(year);
@@ -165,8 +162,8 @@ export default function CreateContestForm({ onSuccess }) {
                                         onClick={() => handleYearToggle(year)}
                                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border flex items-center gap-1.5 ${
                                             isSelected
-                                                ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/50 shadow-[0_0_10px_rgba(99,102,241,0.2)]'
-                                                : 'bg-black/50 text-slate-400 border-white/10 hover:bg-white/5 hover:border-white/20'
+                                                ? 'bg-[#3B82F6]/20 text-[#3B82F6] border-[#3B82F6]/50 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
+                                                : 'bg-[#1E293B] text-[#94A3B8] border-[#3B82F6]/10 hover:bg-[#3B82F6]/5 hover:border-[#3B82F6]/20'
                                         }`}
                                     >
                                         {year}
@@ -178,10 +175,10 @@ export default function CreateContestForm({ onSuccess }) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Total Questions</label>
+                        <label className="block text-sm font-medium text-[#94A3B8] mb-2">Total Questions</label>
                         <div className="relative group">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FileQuestion className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                <FileQuestion className="h-5 w-5 text-[#475569] group-focus-within:text-[#3B82F6] transition-colors" />
                             </div>
                             <input
                                 type="number"
@@ -189,7 +186,7 @@ export default function CreateContestForm({ onSuccess }) {
                                 value={formData.questionCount}
                                 onChange={handleChange}
                                 min="1"
-                                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-white/20 transition-all outline-none"
+                                className="w-full pl-10 pr-4 py-3 bg-[#1E293B] border border-[#3B82F6]/10 rounded-xl text-white focus:ring-2 focus:ring-[#3B82F6]/50 focus:border-[#3B82F6] hover:border-[#3B82F6]/20 transition-all outline-none"
                                 required
                             />
                         </div>
@@ -197,11 +194,11 @@ export default function CreateContestForm({ onSuccess }) {
                 </div>
             </div>
 
-            <div className="pt-6 border-t border-white/10">
+            <div className="pt-6 border-t border-[#3B82F6]/10">
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.99]"
+                    className="w-full py-4 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#3B82F6]/20 hover:shadow-[#3B82F6]/30 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.99]"
                 >
                     {loading ? (
                         <>

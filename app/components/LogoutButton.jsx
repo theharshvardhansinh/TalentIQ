@@ -16,8 +16,6 @@ export default function LogoutButton() {
             });
             if (res.ok) {
                 router.refresh();
-                // We don't necessarily need to push to login if the home page handles unauth state, 
-                // but refreshing the page will trigger the server component to re-render in unauth state.
                 window.location.reload();
             }
         } catch (error) {
@@ -31,7 +29,7 @@ export default function LogoutButton() {
         <button
             onClick={handleLogout}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-sm font-medium text-white/80 hover:text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#111827] border border-[#3B82F6]/10 hover:bg-[#F43F5E]/10 hover:border-[#F43F5E]/20 transition-colors text-sm font-medium text-[#94A3B8] hover:text-[#F43F5E]"
         >
             <LogOut className="w-4 h-4" />
             <span>{isLoading ? '...' : 'Logout'}</span>

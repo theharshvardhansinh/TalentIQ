@@ -17,14 +17,12 @@ export default async function DashboardPage() {
     const { user: sessionUser } = session;
     const userId = sessionUser.id || sessionUser._id;
 
-    // Redirect Volunteers/Admins to the new Control Center
     if (sessionUser.role === 'volunteer' || sessionUser.role === 'admin') {
         redirect('/dashboard/volunteer');
     }
 
     await dbConnect();
 
-    // 1. Stats
     let solvedCount = 0;
     try {
         const solvedProblems = await Submission.distinct('problemSlug', { userId, status: 'Accepted' });
@@ -34,32 +32,29 @@ export default async function DashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-primary/20 selection:text-primary">
-            {/* Background glow effects */}
+        <div className="min-h-screen bg-[#0A0E1A] text-[#E2E8F0] selection:bg-[#3B82F6]/20 selection:text-[#3B82F6]">
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[100px]" />
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#3B82F6]/8 rounded-full blur-[100px]" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#22D3EE]/5 rounded-full blur-[100px]" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
             </div>
 
             <nav className="relative z-10 glass-nav">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#22D3EE] flex items-center justify-center shadow-lg shadow-[#3B82F6]/20">
                             <Zap className="w-5 h-5 text-white" />
                         </div>
                         <h1 className="text-xl font-bold text-white tracking-tight">Talent IQ</h1>
                     </div>
                     <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3 bg-white/5 py-1.5 px-3 rounded-full border border-white/5">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white">
+                        <div className="flex items-center gap-3 bg-[#111827] py-1.5 px-3 rounded-full border border-[#3B82F6]/10">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] flex items-center justify-center text-xs font-bold text-white">
                                 {sessionUser.name.charAt(0)}
                             </div>
                             <div className="hidden sm:block text-sm">
                                 <span className="font-medium text-white block leading-none">{sessionUser.name}</span>
-                                <span className="text-[10px] text-base-content/50 uppercase tracking-wider font-semibold">
-                                    {sessionUser.role}
-                                </span>
+                                <span className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">{sessionUser.role}</span>
                             </div>
                         </div>
                         <LogoutButton />
@@ -70,12 +65,9 @@ export default async function DashboardPage() {
             <main className="relative z-10 max-w-7xl mx-auto px-6 py-10 w-full">
                 <div className="mb-10">
                     <h2 className="text-3xl font-bold text-white mb-2">Welcome Back, {sessionUser.name.split(' ')[0]}</h2>
-                    <p className="text-base-content/60">Here is your progress overview.</p>
+                    <p className="text-[#94A3B8]">Here is your progress overview.</p>
                 </div>
-
                 <StatsSection solvedCount={solvedCount} />
-
-                {/* Unified Dashboard Client for Contests & Volunteer Actions */}
                 <DashboardClient initialRole={sessionUser.role} userId={userId} />
             </main>
         </div>

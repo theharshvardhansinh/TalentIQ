@@ -10,11 +10,11 @@ export default function ContestDetailPage({ params: paramsPromise }) {
     const [contest, setContest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState('');
-    const [status, setStatus] = useState('loading'); // loading, upcoming, live, past
+    const [status, setStatus] = useState('loading');
 
     const QUOTES = [
         "Practice is the price of mastery.",
-        "Code is like humor. When you have to explain it, it’s bad.",
+        "Code is like humor. When you have to explain it, it's bad.",
         "First, solve the problem. Then, write the code.",
         "Simplicity is the soul of efficiency.",
         "Make it work, make it right, make it fast."
@@ -33,7 +33,7 @@ export default function ContestDetailPage({ params: paramsPromise }) {
             calculateTimeLeft();
         }, 1000);
 
-        calculateTimeLeft(); // Initial call
+        calculateTimeLeft();
 
         return () => clearInterval(timer);
     }, [contest]);
@@ -76,7 +76,6 @@ export default function ContestDetailPage({ params: paramsPromise }) {
             const data = await res.json();
             if (data.success) {
                 setContest(data.data);
-                // Force status update logic immediately
                 if (data.data.isEnded) {
                     setStatus('past');
                 }
@@ -90,47 +89,48 @@ export default function ContestDetailPage({ params: paramsPromise }) {
 
     const getDifficultyColor = (diff) => {
         switch (diff?.toLowerCase()) {
-            case 'easy': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-            case 'medium': return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-            case 'hard': return 'text-rose-400 bg-rose-400/10 border-rose-400/20';
-            default: return 'text-slate-400 bg-slate-400/10';
+            case 'easy': return 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20';
+            case 'medium': return 'text-[#F59E0B] bg-[#F59E0B]/10 border-[#F59E0B]/20';
+            case 'hard': return 'text-[#F43F5E] bg-[#F43F5E]/10 border-[#F43F5E]/20';
+            default: return 'text-[#94A3B8]/40 bg-[#1E293B]';
         }
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+            <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#3B82F6] animate-spin" />
             </div>
         );
     }
 
     if (!contest) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-white">
+            <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center text-white">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Contest Not Found</h1>
-                    <Link href="/dashboard" className="text-indigo-400 hover:text-indigo-300">Return to Dashboard</Link>
+                    <Link href="/dashboard" className="text-[#3B82F6] hover:text-[#60A5FA]">Return to Dashboard</Link>
                 </div>
             </div>
         );
     }
+
     // --- Guard: Registration Check ---
     if (status !== 'past' && !contest.isRegistered) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-white p-6">
-                <div className="max-w-md w-full bg-white/5 border border-white/10 p-8 rounded-2xl text-center space-y-6 backdrop-blur-sm">
-                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
-                        <AlertCircle className="w-8 h-8 text-red-500" />
+            <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center text-white p-6">
+                <div className="max-w-md w-full bg-[#111827] border border-[#F43F5E]/20 p-8 rounded-2xl text-center space-y-6 backdrop-blur-sm">
+                    <div className="w-16 h-16 bg-[#F43F5E]/10 rounded-full flex items-center justify-center mx-auto">
+                        <AlertCircle className="w-8 h-8 text-[#F43F5E]" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400">Access Denied</h2>
-                        <p className="text-slate-400 mt-2">
+                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#F43F5E] to-[#F59E0B]">Access Denied</h2>
+                        <p className="text-[#94A3B8] mt-2">
                             You did not register for <span className="text-white font-semibold">{contest.title}</span>.
                         </p>
                     </div>
                     <Link href="/dashboard" className="block w-full">
-                        <button className="w-full py-3 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl transition-all border border-white/5">
+                        <button className="w-full py-3 bg-[#1E293B] hover:bg-[#3B82F6]/10 text-white font-medium rounded-xl transition-all border border-[#3B82F6]/10">
                             Return to Dashboard
                         </button>
                     </Link>
@@ -142,42 +142,42 @@ export default function ContestDetailPage({ params: paramsPromise }) {
     // --- State 1: Upcoming (Secure Lobby) ---
     if (status === 'upcoming') {
         return (
-            <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="min-h-screen bg-[#0A0E1A] text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#3B82F6]/8 rounded-full blur-[120px] pointer-events-none" />
                 <div className="relative z-10 text-center max-w-2xl mx-auto space-y-8">
                     <div className="space-y-4">
-                        <span className="inline-block px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-sm font-bold tracking-wider mb-4">
+                        <span className="inline-block px-3 py-1 bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] rounded-full text-sm font-bold tracking-wider mb-4">
                             UPCOMING CONTEST
                         </span>
-                        <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-500 tracking-tight">
+                        <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-[#94A3B8] tracking-tight">
                             {contest.title}
                         </h1>
-                        <p className="text-xl text-slate-400">{contest.description}</p>
+                        <p className="text-xl text-[#94A3B8]">{contest.description}</p>
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
-                        <p className="text-sm text-slate-400 uppercase tracking-widest mb-2 font-bold">Starts In</p>
+                    <div className="bg-[#111827] border border-[#3B82F6]/10 rounded-2xl p-8 backdrop-blur-sm">
+                        <p className="text-sm text-[#94A3B8]/60 uppercase tracking-widest mb-2 font-bold">Starts In</p>
                         <div className="text-4xl md:text-6xl font-mono font-bold text-white tabular-nums tracking-tight">
                             {timeLeft}
                         </div>
-                        <div className="mt-6 flex items-center justify-center gap-6 text-sm text-slate-500">
+                        <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[#94A3B8]/60">
                             <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {new Date(contest.startTime).toLocaleDateString()}</span>
                             <span className="flex items-center gap-2"><Clock className="w-4 h-4" /> {new Date(contest.startTime).toLocaleTimeString()}</span>
                         </div>
                     </div>
 
-                    <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3 text-left">
-                        <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/20 p-4 rounded-xl flex items-start gap-3 text-left">
+                        <AlertCircle className="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" />
                         <div>
-                            <h3 className="text-amber-500 font-bold text-sm">Contest Locked</h3>
-                            <p className="text-amber-200/60 text-sm mt-1">
+                            <h3 className="text-[#F59E0B] font-bold text-sm">Contest Locked</h3>
+                            <p className="text-[#F59E0B]/60 text-sm mt-1">
                                 The problem list will automatically appear here when the countdown reaches zero.
                                 Good luck!
                             </p>
                         </div>
                     </div>
 
-                    <Link href="/dashboard" className="inline-flex items-center text-slate-400 hover:text-white transition-colors mt-8">
+                    <Link href="/dashboard" className="inline-flex items-center text-[#94A3B8] hover:text-white transition-colors mt-8">
                         <ArrowRight className="w-4 h-4 mr-2 rotate-180" /> Back to Dashboard
                     </Link>
                 </div>
@@ -192,10 +192,10 @@ export default function ContestDetailPage({ params: paramsPromise }) {
             : 0;
 
         return (
-            <div className="min-h-screen bg-black text-white p-6">
+            <div className="min-h-screen bg-[#0A0E1A] text-white p-6">
                 {/* Header Navigation */}
                 <div className="max-w-6xl mx-auto mb-6">
-                    <Link href="/dashboard" className="inline-flex items-center justify-center p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors">
+                    <Link href="/dashboard" className="inline-flex items-center justify-center p-2 rounded-lg bg-[#111827] hover:bg-[#1E293B] text-white transition-colors border border-[#3B82F6]/10">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                 </div>
@@ -203,22 +203,22 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                 {/* Hero Section */}
                 <div className="max-w-4xl mx-auto text-center space-y-6 py-2">
                     <div>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 border border-white/10 text-slate-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1E293B] border border-[#3B82F6]/10 text-[#94A3B8] rounded-full text-xs font-bold uppercase tracking-wider mb-4">
                             <CheckSquare className="w-3 h-3" /> Contest Finished
                         </span>
                         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
                             {contest.title}
                         </h1>
-                        <div className="flex items-center justify-center gap-2 text-slate-500 text-sm italic">
-                            <Quote className="w-4 h-4 text-slate-600 rotate-180" />
+                        <div className="flex items-center justify-center gap-2 text-[#94A3B8]/60 text-sm italic">
+                            <Quote className="w-4 h-4 text-[#475569] rotate-180" />
                             {randomQuote}
-                            <Quote className="w-4 h-4 text-slate-600" />
+                            <Quote className="w-4 h-4 text-[#475569]" />
                         </div>
                     </div>
 
                     <div className="flex justify-center">
                         <Link href={`/dashboard/student/contest/${contest._id}/leaderboard`}>
-                            <button className="px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-lg shadow-lg shadow-yellow-500/20 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <button className="px-8 py-3 bg-[#F59E0B] hover:bg-[#D97706] text-[#0A0E1A] font-bold rounded-lg shadow-lg shadow-[#F59E0B]/20 transition-all transform hover:scale-105 flex items-center gap-2">
                                 <Trophy className="w-5 h-5" /> View Leaderboard
                             </button>
                         </Link>
@@ -227,22 +227,22 @@ export default function ContestDetailPage({ params: paramsPromise }) {
 
                 {/* Performance Summary */}
                 <div className="max-w-4xl mx-auto mb-12">
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-32 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    <div className="bg-[#111827] border border-[#3B82F6]/10 rounded-2xl p-6 md:p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-32 bg-[#22D3EE]/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                         <div className="relative z-10">
                             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <Star className="w-5 h-5 text-yellow-400" /> Performance Summary
+                                <Star className="w-5 h-5 text-[#F59E0B]" /> Performance Summary
                             </h2>
                             <div className="flex flex-col md:flex-row items-end justify-between gap-4 mb-3">
-                                <div className="text-slate-300">
+                                <div className="text-[#94A3B8]">
                                     You solved <span className="text-white font-bold text-2xl">{contest.userScore}</span> out of <span className="text-white font-bold text-2xl">{contest.totalProblems}</span> problems.
                                 </div>
-                                <div className="text-2xl font-bold text-emerald-400">{percentage}%</div>
+                                <div className="text-2xl font-bold text-[#22D3EE]">{percentage}%</div>
                             </div>
-                            <div className="w-full h-4 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                            <div className="w-full h-4 bg-[#0A0E1A] rounded-full overflow-hidden border border-[#3B82F6]/5">
                                 <div
-                                    className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000 ease-out"
+                                    className="h-full bg-gradient-to-r from-[#22D3EE] to-[#3B82F6] transition-all duration-1000 ease-out"
                                     style={{ width: `${percentage}%` }}
                                 />
                             </div>
@@ -252,20 +252,20 @@ export default function ContestDetailPage({ params: paramsPromise }) {
 
                 {/* Problem List (Practice Mode) */}
                 <div className="max-w-4xl mx-auto space-y-4">
-                    <h2 className="text-xl font-bold text-slate-200">Practice Problems</h2>
+                    <h2 className="text-xl font-bold text-[#94A3B8]">Practice Problems</h2>
                     <div className="space-y-3">
                         {contest.problems.map((problem, index) => (
-                            <div key={problem._id} className="group flex items-center justify-between bg-[#111] border border-white/10 p-5 rounded-xl hover:bg-white/5 transition-colors">
+                            <div key={problem._id} className="group flex items-center justify-between bg-[#111827] border border-[#3B82F6]/8 p-5 rounded-xl hover:bg-[#1E293B] transition-colors">
                                 <div className="flex items-center gap-4">
                                     <div className="mt-0.5">
                                         {problem.userStatus === 'solved' ? (
-                                            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                                            <CheckCircle2 className="w-5 h-5 text-[#10B981]" />
                                         ) : (
-                                            <Circle className="w-5 h-5 text-slate-600" />
+                                            <Circle className="w-5 h-5 text-[#475569]" />
                                         )}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-white group-hover:text-indigo-300 transition-colors">
+                                        <h3 className="font-bold text-white group-hover:text-[#3B82F6] transition-colors">
                                             {index + 1}. {problem.title}
                                         </h3>
                                         <div className="flex items-center gap-2 mt-1">
@@ -273,14 +273,14 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                                                 {problem.difficulty}
                                             </span>
                                             {problem.userStatus === 'solved' && (
-                                                <span className="text-xs text-emerald-500 font-medium px-2 py-0.5 bg-emerald-500/10 rounded">Solved</span>
+                                                <span className="text-xs text-[#10B981] font-medium px-2 py-0.5 bg-[#10B981]/10 rounded">Solved</span>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
                                 <Link href={`/dashboard/student/contest/${contest._id}/problem/${problem.slug}`}>
-                                    <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors border border-white/5">
+                                    <button className="px-4 py-2 bg-[#1E293B] hover:bg-[#3B82F6]/10 text-white text-sm font-medium rounded-lg transition-colors border border-[#3B82F6]/10">
                                         Practice
                                     </button>
                                 </Link>
@@ -294,21 +294,21 @@ export default function ContestDetailPage({ params: paramsPromise }) {
 
     // --- State 3: Live Contest (Lobby) ---
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30">
+        <div className="min-h-screen bg-[#0A0E1A] text-white selection:bg-[#3B82F6]/30">
             {/* Header */}
-            <div className="border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-50">
+            <div className="border-b border-[#3B82F6]/10 bg-[#111827]/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div>
                         <h1 className="text-xl font-bold text-white">{contest.title}</h1>
-                        <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mt-1">
-                            <span className="flex items-center gap-1.5 text-emerald-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <div className="flex items-center gap-2 text-xs font-mono text-[#94A3B8]/60 mt-1">
+                            <span className="flex items-center gap-1.5 text-[#22D3EE]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] animate-pulse" />
                                 LIVE - Ends in {timeLeft}
                             </span>
                         </div>
                     </div>
                     <Link href="/dashboard">
-                        <button className="text-sm text-slate-400 hover:text-white transition-colors">
+                        <button className="text-sm text-[#94A3B8] hover:text-white transition-colors">
                             Exit Contest
                         </button>
                     </Link>
@@ -321,44 +321,44 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                     <div className="lg:col-span-3 space-y-6">
                         <div className="flex items-center justify-between mb-2">
                             <h2 className="text-2xl font-bold">Problems</h2>
-                            <span className="text-slate-400 text-sm">{contest.problems.length} Challenges</span>
+                            <span className="text-[#94A3B8]/60 text-sm">{contest.problems.length} Challenges</span>
                         </div>
 
                         <div className="space-y-3">
                             {contest.problems.map((problem, index) => (
                                 <div
                                     key={problem._id}
-                                    className="group flex flex-col md:flex-row md:items-center justify-between bg-white/5 border border-white/10 p-5 rounded-xl hover:bg-white/10 hover:border-indigo-500/30 transition-all"
+                                    className="group flex flex-col md:flex-row md:items-center justify-between bg-[#111827] border border-[#3B82F6]/8 p-5 rounded-xl hover:bg-[#1E293B] hover:border-[#3B82F6]/20 transition-all"
                                 >
                                     <div className="flex items-start gap-4 mb-4 md:mb-0">
                                         <div className="mt-1">
-                                            {problem.userStatus === 'solved' && <CheckCircle2 className="w-6 h-6 text-emerald-500" />}
-                                            {problem.userStatus === 'attempted' && <div className="w-5 h-5 rounded-full border-2 border-amber-500 bg-amber-500/20" />}
-                                            {problem.userStatus === 'unsolved' && <Circle className="w-5 h-5 text-slate-600" />}
+                                            {problem.userStatus === 'solved' && <CheckCircle2 className="w-6 h-6 text-[#10B981]" />}
+                                            {problem.userStatus === 'attempted' && <div className="w-5 h-5 rounded-full border-2 border-[#F59E0B] bg-[#F59E0B]/20" />}
+                                            {problem.userStatus === 'unsolved' && <Circle className="w-5 h-5 text-[#475569]" />}
                                         </div>
 
                                         <div>
-                                            <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">
+                                            <h3 className="text-lg font-bold text-white group-hover:text-[#3B82F6] transition-colors">
                                                 {index + 1}. {problem.title}
                                             </h3>
                                             <div className="flex items-center gap-3 mt-2 text-sm">
                                                 <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${getDifficultyColor(problem.difficulty)}`}>
                                                     {problem.difficulty}
                                                 </span>
-                                                <span className="text-slate-500 font-mono">Score: 100</span>
+                                                <span className="text-[#475569] font-mono">Score: 100</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <Link href={`/dashboard/student/contest/${contest._id}/problem/${problem.slug}`}>
-                                        <button className="w-full md:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 group-hover:translate-x-1">
+                                        <button className="w-full md:w-auto px-6 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium rounded-lg transition-all shadow-lg shadow-[#3B82F6]/20 flex items-center justify-center gap-2 group-hover:translate-x-1">
                                             Solve Challenge <ArrowRight className="w-4 h-4" />
                                         </button>
                                     </Link>
                                 </div>
                             ))}
                             {contest.problems.length === 0 && (
-                                <div className="text-center py-20 bg-white/5 rounded-xl border border-white/10 border-dashed text-slate-500">
+                                <div className="text-center py-20 bg-[#111827] rounded-xl border border-[#3B82F6]/10 border-dashed text-[#475569]">
                                     No problems added to this contest yet.
                                 </div>
                             )}
@@ -367,28 +367,29 @@ export default function ContestDetailPage({ params: paramsPromise }) {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+                        <div className="bg-[#111827] border border-[#3B82F6]/10 rounded-xl p-6">
                             <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-yellow-500" /> Your Performance
+                                <Trophy className="w-4 h-4 text-[#F59E0B]" /> Your Performance
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <div className="flex justify-between text-sm text-slate-400 mb-1">
+                                    <div className="flex justify-between text-sm text-[#94A3B8]/60 mb-1">
                                         <span>Progress</span>
                                         <span>{contest.userScore} / {contest.totalProblems}</span>
                                     </div>
-                                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div className="w-full h-2 bg-[#0A0E1A] rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-emerald-500 transition-all duration-1000"
+                                            className="h-full bg-[#22D3EE] transition-all duration-1000"
                                             style={{ width: `${(contest.userScore / (contest.totalProblems || 1)) * 100}%` }}
                                         />
                                     </div>
                                 </div>
-                            </div>                        </div>
+                            </div>
+                        </div>
 
-                        <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-white/5 rounded-xl p-6">
-                            <h4 className="font-bold text-indigo-300 text-sm mb-2">Instructions</h4>
-                            <ul className="text-sm text-slate-400 space-y-2 list-disc list-inside">
+                        <div className="bg-gradient-to-br from-[#3B82F6]/10 to-[#22D3EE]/5 border border-[#3B82F6]/10 rounded-xl p-6">
+                            <h4 className="font-bold text-[#3B82F6] text-sm mb-2">Instructions</h4>
+                            <ul className="text-sm text-[#94A3B8] space-y-2 list-disc list-inside">
                                 <li>Read problem statements carefully.</li>
                                 <li>Input/Output formats must be exact.</li>
                                 <li>Submit as many times as you like.</li>
