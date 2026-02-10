@@ -56,7 +56,7 @@ export default function ParticipantsPage() {
                                 <th className="p-5 font-semibold">Rank</th>
                                 <th className="p-5 font-semibold">Student Name</th>
                                 <th className="p-5 font-semibold">Email</th>
-                                <th className="p-5 font-semibold text-center">Problems Solved</th>
+                                <th className="p-5 font-semibold text-center">Unique Problems Solved</th>
                                 <th className="p-5 font-semibold text-center">Performance</th>
                             </tr>
                         </thead>

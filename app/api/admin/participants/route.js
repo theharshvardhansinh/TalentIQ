@@ -18,9 +18,20 @@ export async function GET() {
             {
                 $lookup: {
                     from: 'submissions',
-                    localField: '_id',
-                    foreignField: 'userId',
-                    as: 'submissions'
+                    let: { uid: '$_id' },
+                    pipeline: [
+                        { $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$userId', '$$uid'] },
+                                    { $eq: ['$status', 'Accepted'] }
+                                ]
+                            }
+                        }},
+                        { $group: { _id: '$problemSlug' } },
+                        { $count: 'count' }
+                    ],
+                    as: 'solvedStats'
                 }
             },
             {
@@ -28,15 +39,7 @@ export async function GET() {
                     name: 1,
                     email: 1,
                     createdAt: 1,
-                    solvedCount: {
-                        $size: {
-                            $filter: {
-                                input: "$submissions",
-                                as: "sub",
-                                cond: { $eq: ["$$sub.status", "Accepted"] }
-                            }
-                        }
-                    }
+                    solvedCount: { $ifNull: [{ $arrayElemAt: ['$solvedStats.count', 0] }, 0] }
                 }
             },
             { $sort: { solvedCount: -1 } }
