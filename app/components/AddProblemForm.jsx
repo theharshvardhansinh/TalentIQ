@@ -24,16 +24,31 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
     });
     const [activeTab, setActiveTab] = useState('cpp');
     const [aiPrompt, setAiPrompt] = useState('');
+    const [platform, setPlatform] = useState('custom');
+    const [leetcodeTitle, setLeetcodeTitle] = useState('');
+    const [cfContestId, setCfContestId] = useState('');
+    const [cfIndex, setCfIndex] = useState('');
     const [generating, setGenerating] = useState(false);
 
     const generateWithAI = async () => {
-        if (!aiPrompt.trim()) return;
+        let payload = {};
+        if (platform === 'custom') {
+            if (!aiPrompt.trim()) return;
+            payload = { prompt: aiPrompt, platform: 'custom' };
+        } else if (platform === 'leetcode') {
+            if (!leetcodeTitle.trim()) return;
+            payload = { prompt: leetcodeTitle, platform: 'leetcode' };
+        } else if (platform === 'codeforces') {
+            if (!cfContestId.trim() || !cfIndex.trim()) return;
+            payload = { contestId: cfContestId, index: cfIndex, platform: 'codeforces' };
+        }
+
         setGenerating(true);
         try {
             const res = await fetch('/api/generate-problem', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: aiPrompt })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (data.success) {
@@ -164,26 +179,74 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     <Sparkles className="w-4 h-4 text-[#3B82F6]" />
                     AI Problem Generator
                 </label>
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={aiPrompt}
-                        onChange={(e) => setAiPrompt(e.target.value)}
-                        placeholder="e.g., LeetCode 1 Two Sum, Linear Search, Matrix Rotation"
-                        className="flex-1 px-4 py-2 bg-[#0A0E1A] border border-[#3B82F6]/10 rounded-lg text-white focus:ring-2 focus:ring-[#3B82F6] outline-none text-sm"
-                    />
-                    <button
-                        type="button"
-                        onClick={generateWithAI}
-                        disabled={generating || !aiPrompt.trim()}
-                        className="px-6 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
+
+                <div className="flex gap-4 mb-3">
+                    <select
+                        value={platform}
+                        onChange={(e) => setPlatform(e.target.value)}
+                        className="px-4 py-2 bg-[#0A0E1A] border border-[#3B82F6]/10 rounded-lg text-white focus:ring-2 focus:ring-[#3B82F6] outline-none text-sm min-w-[120px]"
                     >
-                        {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                        Generate
-                    </button>
+                        <option value="custom">Custom</option>
+                        <option value="leetcode">LeetCode</option>
+                        <option value="codeforces">Codeforces</option>
+                    </select>
+
+                    <div className="flex-1 flex gap-2">
+                        {platform === 'custom' && (
+                            <input
+                                type="text"
+                                value={aiPrompt}
+                                onChange={(e) => setAiPrompt(e.target.value)}
+                                placeholder="e.g., Linear Search, Matrix Rotation"
+                                className="flex-1 px-4 py-2 bg-[#0A0E1A] border border-[#3B82F6]/10 rounded-lg text-white focus:ring-2 focus:ring-[#3B82F6] outline-none text-sm"
+                            />
+                        )}
+
+                        {platform === 'leetcode' && (
+                            <input
+                                type="text"
+                                value={leetcodeTitle}
+                                onChange={(e) => setLeetcodeTitle(e.target.value)}
+                                placeholder="e.g. Two Sum, 1. Two Sum, or URL"
+                                className="flex-1 px-4 py-2 bg-[#0A0E1A] border border-[#3B82F6]/10 rounded-lg text-white focus:ring-2 focus:ring-[#3B82F6] outline-none text-sm"
+                            />
+                        )}
+
+                        {platform === 'codeforces' && (
+                            <div className="flex-1 flex gap-2">
+                                <input
+                                    type="text"
+                                    value={cfContestId}
+                                    onChange={(e) => setCfContestId(e.target.value)}
+                                    placeholder="Contest ID (e.g. 1352)"
+                                    className="flex-1 px-4 py-2 bg-[#0A0E1A] border border-[#3B82F6]/10 rounded-lg text-white focus:ring-2 focus:ring-[#3B82F6] outline-none text-sm"
+                                />
+                                <input
+                                    type="text"
+                                    value={cfIndex}
+                                    onChange={(e) => setCfIndex(e.target.value)}
+                                    placeholder="Index (e.g. A, C)"
+                                    className="w-24 px-4 py-2 bg-[#0A0E1A] border border-[#3B82F6]/10 rounded-lg text-white focus:ring-2 focus:ring-[#3B82F6] outline-none text-sm"
+                                />
+                            </div>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={generateWithAI}
+                            disabled={generating || (platform === 'custom' && !aiPrompt.trim()) || (platform === 'leetcode' && !leetcodeTitle.trim()) || (platform === 'codeforces' && (!cfContestId.trim() || !cfIndex.trim()))}
+                            className="px-6 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+                        >
+                            {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                            Generate
+                        </button>
+                    </div>
                 </div>
+
                 <p className="text-[10px] text-[#64748B] mt-2">
-                    Enter a problem name or topic. AI will fill title, description, constraints, and test cases (2 public, 3 hidden).
+                    {platform === 'custom' && "Enter a problem name or topic. AI will fill details."}
+                    {platform === 'leetcode' && "Enter a LeetCode problem title or URL. AI will retrieve details."}
+                    {platform === 'codeforces' && "Enter Codeforces Contest ID and Problem Index. AI will retrieve details."}
                 </p>
             </div>
 
