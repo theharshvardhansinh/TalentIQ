@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Loader2, Plus, Trash2, Code2, Save, Sparkles, Camera, Eye, Edit2 } from 'lucide-react';
 
 
-
 export default function AddProblemForm({ contestId, onSuccess, initialData = null, problemId = null }) {
     const isEditMode = !!problemId;
     const [loading, setLoading] = useState(false);
@@ -30,32 +29,79 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
     const [leetcodeTitle, setLeetcodeTitle] = useState('');
     const [cfContestId, setCfContestId] = useState('');
     const [cfIndex, setCfIndex] = useState('');
+    const [codeChefCode, setCodeChefCode] = useState('');
     const [generating, setGenerating] = useState(false);
     const [botLoading, setBotLoading] = useState(false);
     const [descTab, setDescTab] = useState('write'); // 'write' | 'preview'
 
     const handleBotImport = async () => {
-        if (!cfContestId.trim() || !cfIndex.trim()) {
-            alert("Please enter Contest ID and Index");
+        let problemUrl = '';
+        let problemIdentifier = '';
+
+        if (platform === 'codeforces') {
+            if (!cfContestId.trim() || !cfIndex.trim()) {
+                alert("Please enter Contest ID and Index");
+                return;
+            }
+            problemUrl = `https://codeforces.com/problemset/problem/${cfContestId}/${cfIndex}`;
+            problemIdentifier = `Problem ${cfContestId}${cfIndex}`;
+        } else if (platform === 'codechef') {
+            if (!codeChefCode.trim()) {
+                alert("Please enter Problem Code or URL");
+                return;
+            }
+
+            const inputVal = codeChefCode.trim();
+            if (inputVal.startsWith('http')) {
+                problemUrl = inputVal;
+                // Try to extract code from URL for identifier
+                const match = problemUrl.match(/problems\/([A-Za-z0-9_]+)/);
+                const extractedCode = match ? match[1] : 'Link';
+                problemIdentifier = `CodeChef ${extractedCode}`;
+            } else {
+                // CodeChef URL structure - Standardize to UpperCase
+                const formattedCode = inputVal.toUpperCase();
+                problemUrl = `https://www.codechef.com/problems/${formattedCode}`;
+                problemIdentifier = `CodeChef ${formattedCode}`;
+            }
+        } else if (platform === 'leetcode') {
+            if (!leetcodeTitle.trim()) {
+                alert("Please enter LeetCode Title or URL");
+                return;
+            }
+            const inputVal = leetcodeTitle.trim();
+            if (inputVal.startsWith('http')) {
+                problemUrl = inputVal;
+                // Try to extract slug
+                const match = problemUrl.match(/problems\/([^/]+)/);
+                const slug = match ? match[1] : 'Unknown';
+                problemIdentifier = `LeetCode ${slug}`;
+            } else {
+                // Formatting "Two Sum" -> "two-sum"
+                let cleanedTitle = inputVal.replace(/^\d+\.\s*/, '');
+                const slug = cleanedTitle.toLowerCase().replace(/\s+/g, '-');
+                problemUrl = `https://leetcode.com/problems/${slug}/`;
+                problemIdentifier = `LeetCode ${cleanedTitle}`;
+                // LeetCode URLs usually end with slash
+            }
+        } else {
             return;
         }
 
         setBotLoading(true);
         try {
-            const problemUrl = `https://codeforces.com/problemset/problem/${cfContestId}/${cfIndex}`;
-
             // Call the local bot server (make sure server.js is running on port 5000)
-            const res = await fetch('http://localhost:5000/api/add-problem', {
+            const res = await fetch('/api/bot/screenshot', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: problemUrl })
+                body: JSON.stringify({ url: problemUrl, platform })
             });
 
             const data = await res.json();
 
             if (data.success) {
                 // Determine if title is already set, if not try to build one
-                const currentTitle = formData.title || `Problem ${cfContestId}${cfIndex}`;
+                const currentTitle = formData.title || problemIdentifier;
 
                 // Append the image to the description
                 const imageMarkdown = `![Problem Screenshot](${data.imageUrl})`;
@@ -66,7 +112,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 // 2. Call Gemini to analyze the image and generate test cases
                 let extractedData = {};
                 try {
-                    const aiPayload = { imageUrl: data.imageUrl };
+                    const aiPayload = { imageUrl: data.imageUrl, platform };
                     const aiRes = await fetch('/api/generate-problem', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -99,11 +145,11 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 setDescTab('preview'); // Switch to preview to show the image immediately
                 alert("Screenshot captured and analyzed by AI!");
             } else {
-                alert(data.error || "Failed to capture screenshot. Is the bot server (port 5000) running?");
+                alert(data.error || "Failed to capture screenshot.");
             }
         } catch (error) {
             console.error("Bot Error:", error);
-            alert("Failed to connect to bot server. Make sure server.js is running on port 5000.");
+            alert("Failed to connect to bot API.");
         } finally {
             setBotLoading(false);
         }
@@ -120,6 +166,14 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
         } else if (platform === 'codeforces') {
             if (!cfContestId.trim() || !cfIndex.trim()) return;
             payload = { contestId: cfContestId, index: cfIndex, platform: 'codeforces' };
+        } else if (platform === 'codechef') {
+            if (!codeChefCode.trim()) return;
+
+            const inputVal = codeChefCode.trim();
+            // If URL, pass as prompt, otherwise pass uppercase code
+            const prompt = inputVal.startsWith('http') ? inputVal : inputVal.toUpperCase();
+
+            payload = { prompt: prompt, platform: 'codechef' };
         }
 
         setGenerating(true);
@@ -295,6 +349,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                         <option value="custom">Custom</option>
                         <option value="leetcode">LeetCode</option>
                         <option value="codeforces">Codeforces</option>
+                        <option value="codechef">CodeChef</option>
                     </select>
 
                     <div className="flex-1 flex gap-2">
@@ -337,21 +392,31 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                             </div>
                         )}
 
+                        {platform === 'codechef' && (
+                            <input
+                                type="text"
+                                value={codeChefCode}
+                                onChange={(e) => setCodeChefCode(e.target.value)}
+                                placeholder="Code or URL (e.g. TEST or https://...)"
+                                className="flex-1 px-4 py-2 bg-[#0A0E1A] border border-[#3B82F6]/10 rounded-lg text-white focus:ring-2 focus:ring-[#3B82F6] outline-none text-sm"
+                            />
+                        )}
+
                         <button
                             type="button"
                             onClick={generateWithAI}
-                            disabled={generating || (platform === 'custom' && !aiPrompt.trim()) || (platform === 'leetcode' && !leetcodeTitle.trim()) || (platform === 'codeforces' && (!cfContestId.trim() || !cfIndex.trim()))}
+                            disabled={generating || (platform === 'custom' && !aiPrompt.trim()) || (platform === 'leetcode' && !leetcodeTitle.trim()) || (platform === 'codeforces' && (!cfContestId.trim() || !cfIndex.trim())) || (platform === 'codechef' && !codeChefCode.trim())}
                             className="px-6 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
                         >
                             {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                             Generate (AI)
                         </button>
 
-                        {platform === 'codeforces' && (
+                        {(platform === 'codeforces' || platform === 'codechef' || platform === 'leetcode') && (
                             <button
                                 type="button"
                                 onClick={handleBotImport}
-                                disabled={botLoading || !cfContestId.trim() || !cfIndex.trim()}
+                                disabled={botLoading || (platform === 'codeforces' && (!cfContestId.trim() || !cfIndex.trim())) || (platform === 'codechef' && !codeChefCode.trim()) || (platform === 'leetcode' && !leetcodeTitle.trim())}
                                 className="px-6 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
                             >
                                 {botLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
@@ -363,8 +428,9 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
                 <p className="text-[10px] text-[#64748B] mt-2">
                     {platform === 'custom' && "Enter a problem name or topic. AI will fill details."}
-                    {platform === 'leetcode' && "Enter a LeetCode problem title or URL. AI will retrieve details."}
+                    {platform === 'leetcode' && "Enter Title (e.g. 'Two Sum') or URL. 'Fetch Screenshot' captures the problem."}
                     {platform === 'codeforces' && "Enter Codeforces Contest ID and Problem Index. Use 'Generate' for AI text, or 'Fetch Screenshot' for an image capture."}
+                    {platform === 'codechef' && "Enter CodeChef Problem Code or Full URL. 'Fetch Screenshot' captures the problem statement image."}
                 </p>
             </div>
 

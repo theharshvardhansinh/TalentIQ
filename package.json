@@ -16,7 +16,6 @@
     "cookie": "^1.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
-    "express": "^5.2.1",
     "framer-motion": "^12.25.0",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.3",

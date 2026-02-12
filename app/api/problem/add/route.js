@@ -22,12 +22,20 @@ export async function POST(req) {
         }
 
         // Generate slug manually
-        const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        let uniqueSlug = baseSlug;
+        let counter = 1;
+
+        // Ensure slug uniqueness
+        while (await Problem.findOne({ slug: uniqueSlug })) {
+            uniqueSlug = `${baseSlug}-${counter}`;
+            counter++;
+        }
 
         // 1. Create the Problem
         const problem = await Problem.create({
             title,
-            slug,
+            slug: uniqueSlug,
             description,
             difficulty,
             constraints,
