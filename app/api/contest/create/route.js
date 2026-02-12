@@ -14,10 +14,12 @@ export async function POST(req) {
         await dbConnect();
 
         const body = await req.json();
+        console.log("Creating contest with body:", body);
         const { title, description, startTime, endTime, questionCount, yearLevel } = body;
 
         // Basic validation
         if (!title || !startTime || !endTime || !questionCount || !yearLevel) {
+            console.log("Missing fields:", { title, startTime, endTime, questionCount, yearLevel });
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 

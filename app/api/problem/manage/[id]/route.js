@@ -46,7 +46,8 @@ export async function PUT(req, { params }) {
             inputFormat: body.inputFormat,
             outputFormat: body.outputFormat,
             tags: body.tags,
-            testCases: body.testCases
+            testCases: body.testCases,
+            starterCode: body.starterCode
         };
 
         const problem = await Problem.findByIdAndUpdate(id, updateData, { new: true });

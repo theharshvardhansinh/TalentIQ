@@ -3,7 +3,8 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Trash2, Plus, GripVertical, Loader2, X, Edit3 } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Plus, GripVertical, Loader2, X, Edit3, Minus } from 'lucide-react';
+import { toast } from 'sonner';
 import AddProblemForm from '@/app/components/AddProblemForm';
 
 export default function EditContestPage({ params: paramsPromise }) {
@@ -57,6 +58,7 @@ export default function EditContestPage({ params: paramsPromise }) {
             }
         } catch (error) {
             console.error("Failed to load contest", error);
+            toast.error("Failed to load contest data");
         } finally {
             setLoading(false);
         }
@@ -70,9 +72,49 @@ export default function EditContestPage({ params: paramsPromise }) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleRemoveProblem = (problemId) => {
-        if (!confirm("Are you sure you want to remove this problem from the list? (It will not be deleted from the database)")) return;
-        setSelectedProblems(prev => prev.filter(p => p._id !== problemId));
+    const handleUnlinkProblem = (problemId) => {
+        toast("Unlink problem from contest?", {
+            description: "It stays in the database.",
+            action: {
+                label: "Unlink",
+                onClick: () => {
+                    setSelectedProblems(prev => prev.filter(p => p._id !== problemId));
+                    toast.success("Problem unlinked.");
+                }
+            },
+            cancel: {
+                label: "Cancel",
+            },
+        });
+    };
+
+    const handleDeleteProblem = (problemId) => {
+        toast("PERMANENTLY delete problem?", {
+            description: "This cannot be undone!",
+            action: {
+                label: "Delete",
+                onClick: async () => {
+                    try {
+                        const res = await fetch(`/api/problem/manage/${problemId}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            setSelectedProblems(prev => prev.filter(p => p._id !== problemId));
+                            toast.success("Problem deleted permanently.");
+                        } else {
+                            toast.error(data.error || "Failed to delete problem");
+                        }
+                    } catch (error) {
+                        console.error("Error deleting problem:", error);
+                        toast.error("Error deleting problem");
+                    }
+                }
+            },
+            cancel: {
+                label: "Cancel",
+            },
+        });
     };
 
     const handleSaveContest = async () => {
@@ -91,14 +133,14 @@ export default function EditContestPage({ params: paramsPromise }) {
 
             const data = await res.json();
             if (data.success) {
-                alert("Contest updated successfully!");
+                toast.success("Contest updated successfully!");
                 router.push('/dashboard/volunteer');
             } else {
-                alert(data.error || "Failed to update");
+                toast.error(data.error || "Failed to update");
             }
         } catch (error) {
             console.error(error);
-            alert("Error saving contest");
+            toast.error("Error saving contest");
         } finally {
             setSaving(false);
         }
@@ -125,12 +167,12 @@ export default function EditContestPage({ params: paramsPromise }) {
             if (data.success) {
                 setEditingProblemData(data.data);
             } else {
-                alert("Failed to load problem details");
+                toast.error("Failed to load problem details");
                 setIsModalOpen(false);
             }
         } catch (error) {
             console.error("Error fetching problem", error);
-            alert("Error loading problem");
+            toast.error("Error loading problem");
             setIsModalOpen(false);
         } finally {
             setLoadingProblem(false);
@@ -140,6 +182,7 @@ export default function EditContestPage({ params: paramsPromise }) {
     const handleProblemSaved = () => {
         setIsModalOpen(false);
         fetchContest(); // Refresh list to see new/updated problem
+        toast.success("Problem saved successfully");
     };
 
     if (loading) {
@@ -269,10 +312,21 @@ export default function EditContestPage({ params: paramsPromise }) {
                                                 >
                                                     <Edit3 className="w-4 h-4" />
                                                 </button>
+
+                                                {/* Unlink Button */}
                                                 <button
-                                                    onClick={() => handleRemoveProblem(problem._id)}
-                                                    className="text-slate-600 hover:text-red-400 transition-colors p-2 hover:bg-red-500/10 rounded-lg"
-                                                    title="Remove from List"
+                                                    onClick={() => handleUnlinkProblem(problem._id)}
+                                                    className="text-slate-600 hover:text-amber-400 transition-colors p-2 hover:bg-amber-500/10 rounded-lg"
+                                                    title="Unlink from Contest (Keep in DB)"
+                                                >
+                                                    <Minus className="w-4 h-4" />
+                                                </button>
+
+                                                {/* Delete Button */}
+                                                <button
+                                                    onClick={() => handleDeleteProblem(problem._id)}
+                                                    className="text-slate-600 hover:text-red-500 transition-colors p-2 hover:bg-red-500/10 rounded-lg"
+                                                    title="Permanently Delete"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>

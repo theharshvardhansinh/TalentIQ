@@ -42,11 +42,7 @@ export async function GET() {
 
         return NextResponse.json({
             success: true,
-            data: {
-                live,
-                upcoming,
-                past
-            }
+            data: [...live, ...upcoming, ...past]
         });
 
     } catch (error) {

@@ -75,7 +75,8 @@ export default function ProblemPage({ params: paramsPromise }) {
 
     const handleLanguageChange = (newLang) => {
         setLanguage(newLang);
-        setCode(templates[newLang]); // Simple replace for now
+        const template = problem?.starterCode?.[newLang] || templates[newLang] || "";
+        setCode(template);
     };
 
     const fetchProblem = async () => {
@@ -84,6 +85,17 @@ export default function ProblemPage({ params: paramsPromise }) {
             const data = await res.json();
             if (data.success) {
                 setProblem(data.data);
+
+                // If no user code is saved, populate with DB starter code
+                const savedCode = localStorage.getItem(CODE_KEY);
+                if (!savedCode) {
+                    const currentLang = localStorage.getItem(LANG_KEY) || 'javascript';
+                    const dbTemplate = data.data.starterCode?.[currentLang];
+                    // Only override if we have a specific template from DB
+                    if (dbTemplate) {
+                        setCode(dbTemplate);
+                    }
+                }
             }
         } catch (error) {
             console.error('Failed to fetch problem', error);
@@ -299,7 +311,26 @@ export default function ProblemPage({ params: paramsPromise }) {
 
                                 <div className="prose prose-invert prose-sm max-w-none space-y-6">
                                     <div className="whitespace-pre-wrap text-slate-300 leading-relaxed font-sans">
-                                        {problem.description}
+                                        {((text) => {
+                                            if (!text) return null;
+                                            // Split by image markdown: ![alt](url)
+                                            const parts = text.split(/(!\[.*?\]\(.*?\))/g);
+                                            return parts.map((part, index) => {
+                                                const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
+                                                if (imageMatch) {
+                                                    return (
+                                                        <div key={index} className="my-4 rounded-lg overflow-hidden border border-white/10">
+                                                            <img
+                                                                src={imageMatch[2]}
+                                                                alt={imageMatch[1] || "Problem Image"}
+                                                                className="w-full object-contain max-h-[500px] bg-black"
+                                                            />
+                                                        </div>
+                                                    );
+                                                }
+                                                return <span key={index}>{part}</span>;
+                                            });
+                                        })(problem.description)}
                                     </div>
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-bold text-white flex items-center gap-2">

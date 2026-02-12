@@ -19,7 +19,7 @@ export async function GET(req, { params }) {
         // Fetch problem by slug
         // Exclude hidden testcases, createdBy, and timestamps
         const problem = await Problem.findOne({ slug }).select(
-            'title description difficulty constraints inputFormat outputFormat testCases tags'
+            'title description difficulty constraints inputFormat outputFormat testCases tags starterCode'
         ).lean();
 
         if (!problem) {
@@ -46,7 +46,8 @@ export async function GET(req, { params }) {
             inputFormat: problem.inputFormat,
             outputFormat: problem.outputFormat,
             tags: problem.tags,
-            examples: publicExamples // Key change: sending processed examples, not raw testCases
+            examples: publicExamples, // Key change: sending processed examples, not raw testCases
+            starterCode: problem.starterCode
         };
 
         return NextResponse.json({ success: true, data: safeProblem });

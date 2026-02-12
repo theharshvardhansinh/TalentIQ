@@ -15,7 +15,7 @@ export async function POST(req) {
         await dbConnect();
 
         const body = await req.json();
-        const { contestId, title, description, difficulty, constraints, inputFormat, outputFormat, testCases, tags } = body;
+        const { contestId, title, description, difficulty, constraints, inputFormat, outputFormat, testCases, tags, starterCode } = body;
 
         if (!contestId || !title || !description) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -35,6 +35,7 @@ export async function POST(req) {
             outputFormat,
             testCases, // Expecting array of {input, output}
             tags,
+            starterCode,
             createdBy: session.user.id
         });
 
