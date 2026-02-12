@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/db';
 import Submission from '@/models/Submission';
@@ -24,11 +26,11 @@ export async function GET(req, { params }) {
 
         // Aggregate submissions for this contest
         const leaderboard = await Submission.aggregate([
-            { 
-                $match: { 
+            {
+                $match: {
                     contestId: new mongoose.Types.ObjectId(id), // Use ObjectId
-                    status: 'Accepted' 
-                } 
+                    status: 'Accepted'
+                }
             },
             {
                 $group: {

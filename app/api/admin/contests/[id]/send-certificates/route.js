@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/db';
 import Submission from '@/models/Submission';

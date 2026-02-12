@@ -1,8 +1,11 @@
+export const dynamic = 'force-dynamic';
+
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import Submission from '@/models/Submission'; // To get performance?
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
+
 
 export async function GET() {
     try {
@@ -20,14 +23,16 @@ export async function GET() {
                     from: 'submissions',
                     let: { uid: '$_id' },
                     pipeline: [
-                        { $match: {
-                            $expr: {
-                                $and: [
-                                    { $eq: ['$userId', '$$uid'] },
-                                    { $eq: ['$status', 'Accepted'] }
-                                ]
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$userId', '$$uid'] },
+                                        { $eq: ['$status', 'Accepted'] }
+                                    ]
+                                }
                             }
-                        }},
+                        },
                         { $group: { _id: '$problemSlug' } },
                         { $count: 'count' }
                     ],
