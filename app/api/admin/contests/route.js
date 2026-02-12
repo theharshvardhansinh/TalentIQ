@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import dbConnect from '@/lib/db';
 import Contest from '@/models/Contest';
 import { NextResponse } from 'next/server';
@@ -22,13 +24,13 @@ export async function POST(req) {
     try {
         const session = await getSession();
         if (!session || session.user.role !== 'admin') {
-           // For now, if no session, just proceed? No, let's enforce it or mock if needed. 
-           // Given the user flow, I should probably enforce it. 
-           // But since I am editing code without being logged in, I might break testing if I don't handle it.
-           // However, for correct implementation:
-           if (!session) {
-             return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-           }
+            // For now, if no session, just proceed? No, let's enforce it or mock if needed. 
+            // Given the user flow, I should probably enforce it. 
+            // But since I am editing code without being logged in, I might break testing if I don't handle it.
+            // However, for correct implementation:
+            if (!session) {
+                return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+            }
         }
 
         await dbConnect();

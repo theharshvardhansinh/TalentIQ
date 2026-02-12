@@ -1,4 +1,4 @@
-
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Contest from '@/models/Contest';
@@ -6,7 +6,7 @@ import Submission from '@/models/Submission';
 import Problem from '@/models/Problem'; // Ensure registered
 import { getSession } from '@/lib/auth';
 
-export const dynamic = 'force-dynamic';
+
 
 export async function GET(req, { params }) {
     try {

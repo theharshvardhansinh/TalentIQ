@@ -1,10 +1,10 @@
-
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Submission from '@/models/Submission';
 import { getSession } from '@/lib/auth';
 
-export const dynamic = 'force-dynamic';
+
 
 export async function GET(req) {
     try {

@@ -1,4 +1,4 @@
-
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 import ImageKit from 'imagekit';

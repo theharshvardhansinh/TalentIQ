@@ -1,4 +1,4 @@
-
+export const dynamic = 'force-dynamic'; // Ensure not statically cached as time is critical
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Contest from '@/models/Contest';
