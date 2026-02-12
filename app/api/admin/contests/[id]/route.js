@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 
 import dbConnect from '@/lib/db';
 import Contest from '@/models/Contest';
@@ -26,7 +27,7 @@ export async function DELETE(req, { params }) {
         // 1. Verify Admin Password
         const adminUser = await User.findById(session.user.id);
         if (!adminUser) {
-             return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+            return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
         }
 
         const isMatch = await bcrypt.compare(password, adminUser.password);
