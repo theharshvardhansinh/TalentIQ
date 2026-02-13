@@ -7,7 +7,7 @@ import CreateContestForm from '@/app/components/CreateContestForm';
 import AddProblemForm from '@/app/components/AddProblemForm';
 import ContestLeaderboard from '@/app/components/ContestLeaderboard';
 
-export default function ContestsPage() {
+function ContestsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const contestId = searchParams.get('id');
@@ -19,7 +19,7 @@ export default function ContestsPage() {
     const [contestToDelete, setContestToDelete] = useState(null);
     const [adminPassword, setAdminPassword] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
-    
+
     // Derived state from URL
     const selectedContest = contests.find(c => c._id === contestId);
 
@@ -103,12 +103,12 @@ export default function ContestsPage() {
     // View: Contest Details & Problem Management
     if (selectedContest) {
         const isFinished = selectedContest.status === 'completed' || new Date(selectedContest.endTime) < new Date();
-        
+
         if (isFinished) {
             return (
-                <ContestLeaderboard 
-                    contest={selectedContest} 
-                    onBack={handleBack} 
+                <ContestLeaderboard
+                    contest={selectedContest}
+                    onBack={handleBack}
                 />
             );
         }
@@ -216,7 +216,7 @@ export default function ContestsPage() {
                                         <span className={`px-2.5 py-1 text-xs rounded-full uppercase font-bold border shadow-sm ${getStatusColor(contest.status)}`}>
                                             {contest.status}
                                         </span>
-                                        <button 
+                                        <button
                                             onClick={(e) => handleDeleteClick(e, contest)}
                                             className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all z-20"
                                             title="Delete Contest"
@@ -282,9 +282,9 @@ export default function ContestsPage() {
                                 </div>
                                 <h3 className="text-xl font-bold">Delete Contest?</h3>
                             </div>
-                            
+
                             <p className="text-gray-400 mb-6">
-                                You are about to delete <span className="text-white font-semibold">{contestToDelete.title}</span>. 
+                                You are about to delete <span className="text-white font-semibold">{contestToDelete.title}</span>.
                                 This action cannot be undone and will remove all associated data including problems and submissions.
                             </p>
 
@@ -330,3 +330,5 @@ export default function ContestsPage() {
         </div>
     );
 }
+
+export default ContestsPage;
