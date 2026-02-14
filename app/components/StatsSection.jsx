@@ -84,10 +84,10 @@ export default function StatsSection({ solvedCount, contestsParticipated, accept
                                     <h3 className="text-2xl font-bold text-white mb-1.5">{card.getValue(stats)}</h3>
                                     <p className="text-xs font-medium" style={{ color: card.color }}>{card.getSub(stats)}</p>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+                                <div className="w-24 h-24 rounded-3xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
                                     style={{ background: `${card.color}15` }}
                                 >
-                                    <Icon className="w-5 h-5" style={{ color: card.color }} />
+                                    <Icon className="w-12 h-12" style={{ color: card.color }} />
                                 </div>
                             </div>
                         </div>
