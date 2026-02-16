@@ -1,8 +1,0 @@
-.git
-.next
-node_modules
-.env
-.env.production
-.env.local
-npm-debug.log
-.DS_Store

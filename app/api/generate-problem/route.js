@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
@@ -31,8 +31,26 @@ export async function POST(req) {
             throw new Error("GEMINI_API_KEY is not defined");
         }
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        // gemini-flash-latest is the one that exists (gave 503 previously). 1.5-flash gave 404.
         console.log("Using Gemini model: gemini-flash-latest");
         const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+        // Helper for 503 Retries
+        async function generateWithRetry(payload, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return await model.generateContent(payload);
+                } catch (error) {
+                    const isOverloaded = error.message.includes('503') || error.message.includes('Overloaded');
+                    if (isOverloaded && i < retries - 1) {
+                        console.log(`Gemini 503 Overloaded. Retrying (${i + 1}/${retries})...`);
+                        await new Promise(r => setTimeout(r, 2000 * (i + 1))); // Exponential-ish backoff
+                        continue;
+                    }
+                    throw error;
+                }
+            }
+        }
 
         let finalProblemData = null;
 
@@ -87,7 +105,7 @@ export async function POST(req) {
                 Return ONLY the JSON.
             `;
 
-            const result = await model.generateContent(problemPrompt);
+            const result = await generateWithRetry(problemPrompt);
             const text = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
             try {
                 finalProblemData = JSON.parse(text);
@@ -131,7 +149,7 @@ export async function POST(req) {
                         { "input": "...", "output": "...", "isPublic": true },
                         { "input": "...", "output": "...", "isPublic": false },
                         { "input": "...", "output": "...", "isPublic": false },
-                         { "input": "...", "output": "...", "isPublic": false }
+                        { "input": "...", "output": "...", "isPublic": false }
                     ],
                     "starterCode": {
                         "cpp": "// C++ starter...",
@@ -147,7 +165,7 @@ export async function POST(req) {
                 Return ONLY the JSON.
             `;
 
-            const result = await model.generateContent([
+            const result = await generateWithRetry([
                 prompt,
                 {
                     inlineData: {
@@ -225,7 +243,7 @@ export async function POST(req) {
                 Return ONLY the JSON. No markdown, no extra text.
             `;
 
-            const result = await model.generateContent(instruction);
+            const result = await generateWithRetry(instruction);
             const text = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
 
             // Try parsing JSON

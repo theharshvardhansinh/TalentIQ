@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Problem from '@/models/Problem';
@@ -15,8 +15,7 @@ export async function POST(req) {
         await dbConnect();
 
         const body = await req.json();
-        const { contestId, title, description, difficulty, constraints, inputFormat, outputFormat, testCases, tags, starterCode } = body;
-
+        const { contestId, title, description, difficulty, constraints, inputFormat, outputFormat, testCases, tags, starterCode, platform, originalUrl } = body;
         if (!contestId || !title || !description) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
@@ -44,6 +43,8 @@ export async function POST(req) {
             testCases, // Expecting array of {input, output}
             tags,
             starterCode,
+            platform,
+            originalUrl,
             createdBy: session.user.id
         });
 

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+
 import { getSession } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import ActivityLog from '@/models/ActivityLog';

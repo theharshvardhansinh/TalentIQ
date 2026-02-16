@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer';
 import ImageKit from 'imagekit';
@@ -37,6 +37,40 @@ async function captureProblem(problemUrl) {
 
         const page = await browser.newPage();
 
+        // 🕵️ FINAL SOLUTION: Comprehensive Stealth Mode (Manual Evasion)
+        await page.evaluateOnNewDocument(() => {
+            // 1. Pass webdriver check
+            Object.defineProperty(navigator, 'webdriver', { get: () => false });
+
+            // 2. Mock Languages
+            Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+
+            // 3. Mock Plugins (Basic)
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+
+            // 4. Mock Window.chrome
+            window.chrome = { runtime: {} };
+
+            // 5. Mock Permissions
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                    Promise.resolve({ state: Notification.permission }) :
+                    originalQuery(parameters)
+            );
+        });
+
+        // Set realistic headers with Referer to look like traffic from Google
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.google.com/',
+        });
+
+        // Set realistic headers
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9',
+        });
+
         // Set a realistic User-Agent to avoid basic bot detection
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
 
@@ -45,46 +79,13 @@ async function captureProblem(problemUrl) {
         let selector = '.problem-statement'; // Default for Codeforces
         let captureFullPage = false;
 
-        if (problemUrl.includes('codechef.com')) {
-            console.log("Detecting CodeChef URL...");
-            await page.goto(problemUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        // Simulate some mouse movement
+        try {
+            await page.mouse.move(100, 100);
+            await page.mouse.move(200, 200, { steps: 10 });
+        } catch (e) { }
 
-            // ⏳ Initial breather for React hydration (5s)
-            await new Promise(r => setTimeout(r, 5000));
-
-            // CodeChef dynamic selector search
-            try {
-                // Expanded list of selectors including generic containers & Course page specific
-                const possibleSelectors = [
-                    '#problem-statement',
-                    'div[class*="ProblemStatement"]',
-                    'div[class*="_problemBody_"]',
-                    'div[class*="_statement_"]', // Course pages often use this
-                    'div[class*="problem-statement"]',
-                    'main',
-                    'div.content'
-                ];
-
-                // Wait longer for slow connections (30s)
-                await page.waitForFunction((selectors) => {
-                    return selectors.some(s => document.querySelector(s));
-                }, { timeout: 30000 }, possibleSelectors);
-
-                // Find which one exists
-                const foundSelector = await page.evaluate((selectors) => {
-                    return selectors.find(s => document.querySelector(s));
-                }, possibleSelectors);
-
-                if (foundSelector) {
-                    selector = foundSelector;
-                    console.log(`Found CodeChef selector: ${selector}`);
-                }
-            } catch (e) {
-                console.warn("CodeChef specific selector wait timed out, falling back to full page");
-                captureFullPage = true;
-            }
-
-        } else if (problemUrl.includes('leetcode.com')) {
+        if (problemUrl.includes('leetcode.com')) {
             console.log("Detecting LeetCode URL...");
 
             // LeetCode navigation - strict try/catch to handle timeouts (often due to bot checks)
@@ -145,23 +146,40 @@ async function captureProblem(problemUrl) {
         }
 
         // ⏳ Wait for ensure everything is stable
-        // CodeChef gets 15s, LeetCode & Codeforces get 8s
-        const waitTime = problemUrl.includes('codechef.com') ? 15000 : 8000;
+        // CodeChef gets extra time (20s), LeetCode & Codeforces get 8s
+        const waitTime = 8000;
+        console.log(`Final stability wait: ${waitTime}ms`);
         await new Promise(r => setTimeout(r, waitTime));
 
         let imageBuffer;
-        if (captureFullPage) {
+        if (captureFullPage || selector === 'body') {
+            // 📏 RESIZE VIEWPORT STRATEGY (Fixes White Screen)
+            // Instead of fullPage: true (which fails on virtualized apps), we resize the window to fit the content.
+            const bodyHeight = await page.evaluate(() => Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight));
+
+            console.log(`Resizing viewport to full height: ${bodyHeight}px`);
+            await page.setViewport({ width: 1920, height: Math.max(bodyHeight, 1080) });
+
             if (problemUrl.includes('leetcode.com')) {
                 console.log("Capturing left-side clip for LeetCode fallback...");
-                // Capture roughly the left half (description area)
-                imageBuffer = await page.screenshot({ clip: { x: 0, y: 0, width: 900, height: 1080 } });
+                imageBuffer = await page.screenshot({ clip: { x: 0, y: 0, width: 900, height: bodyHeight } });
             } else {
-                console.log("Capturing full page screenshot as fallback...");
-                imageBuffer = await page.screenshot({ fullPage: true });
+                console.log("Capturing viewport screenshot (simulated full page)...");
+                // Standard screenshot of the now-huge viewport
+                imageBuffer = await page.screenshot();
             }
         } else {
+            // For element screenshot, ensure it fits in viewport or expand viewport
             const element = await page.$(selector);
             if (!element) throw new Error(`Problem statement element (${selector}) not found!`);
+
+            // Helpful for long problem statements:
+            // Calculate height of element and resize viewport if needed
+            const bbox = await element.boundingBox();
+            if (bbox) {
+                await page.setViewport({ width: 1920, height: Math.ceil(bbox.height + bbox.y + 100) });
+            }
+
             imageBuffer = await element.screenshot();
         }
 

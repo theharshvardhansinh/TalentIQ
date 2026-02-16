@@ -52,6 +52,14 @@ const ProblemSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    platform: {
+        type: String,
+        enum: ['Custom', 'LeetCode', 'Codeforces', 'CodeChef'],
+        default: 'Custom',
+    },
+    originalUrl: {
+        type: String,
+    },
 }, { timestamps: true });
 
 

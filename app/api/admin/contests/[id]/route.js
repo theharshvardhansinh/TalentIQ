@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+
 
 import dbConnect from '@/lib/db';
 import Contest from '@/models/Contest';
