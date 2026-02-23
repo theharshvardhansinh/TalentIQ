@@ -1,14 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Users, Calendar, Trophy, Activity, TrendingUp, Clock, Plus, ArrowUpRight, Search, MoreHorizontal, Download, Loader2 } from 'lucide-react';
+import { Users, Calendar, Trophy, Activity, TrendingUp, Clock, Download, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({ volunteers: 0, contests: 0, participants: 0 });
     const [topSolvers, setTopSolvers] = useState([]);
-    const [recentActivity, setRecentActivity] = useState([]);
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState('Last 30 Days');
     const [generatingReport, setGeneratingReport] = useState(false);
@@ -16,20 +15,14 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [volRes, conRes, partRes, actRes] = await Promise.all([
+                const [volRes, conRes, partRes] = await Promise.all([
                     fetch('/api/admin/volunteers'),
                     fetch('/api/admin/contests'),
                     fetch('/api/admin/participants'),
-                    fetch('/api/admin/activity')
                 ]);
                 const volData = await volRes.json();
                 const conData = await conRes.json();
                 const partData = await partRes.json();
-                
-                let actData = [];
-                if (actRes.ok) {
-                    actData = await actRes.json();
-                }
 
                 setStats({
                     volunteers: volData.count || 0,
@@ -39,10 +32,6 @@ export default function AdminDashboard() {
 
                 if (partData.success && Array.isArray(partData.data)) {
                     setTopSolvers(partData.data.slice(0, 5));
-                }
-
-                if (Array.isArray(actData)) {
-                    setRecentActivity(actData.slice(0, 4));
                 }
             } catch (error) {
                 console.error("Error fetching stats", error);
@@ -102,10 +91,7 @@ export default function AdminDashboard() {
             topSolvers.forEach((s, i) => csvRows.push([i + 1, s.name, s.email, s.solvedCount]));
             csvRows.push([]);
 
-            // Recent Activity
-            csvRows.push(['Recent Activity']);
-            csvRows.push(['User', 'Action', 'Target', 'Time']);
-            recentActivity.forEach(a => csvRows.push([a.user, a.action, a.target, new Date(a.timestamp).toLocaleString()]));
+
 
             // Convert to CSV string
             const csvContent = "data:text/csv;charset=utf-8," 
@@ -194,12 +180,12 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-8">
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="lg:col-span-2 bg-[#111827] border border-[#3B82F6]/8 rounded-2xl p-6"
+                    className="bg-[#111827] border border-[#3B82F6]/8 rounded-2xl p-6"
                 >
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-semibold text-white">Top Solvers</h3>
@@ -239,46 +225,6 @@ export default function AdminDashboard() {
                             </tbody>
                         </table>
                     </div>
-                </motion.div>
-
-                <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="bg-[#111827] border border-[#3B82F6]/8 rounded-2xl p-6"
-                >
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-semibold text-white">Recent Activity</h3>
-                        <MoreHorizontal className="w-5 h-5 text-[#475569] cursor-pointer hover:text-white" />
-                    </div>
-                    <div className="space-y-6">
-                        {recentActivity.map((item, index) => {
-                            const Icon = getIcon(item.icon);
-                            return (
-                                <div key={index} className="flex gap-4 group">
-                                    <div className="relative">
-                                        <div className="w-10 h-10 rounded-full bg-[#1E293B] border border-[#3B82F6]/10 flex items-center justify-center group-hover:border-[#3B82F6]/30 group-hover:bg-[#3B82F6]/10 transition-all">
-                                            <Icon className="w-4 h-4 text-[#94A3B8]/60 group-hover:text-[#3B82F6]" />
-                                        </div>
-                                        {index !== recentActivity.length - 1 && (
-                                            <div className="absolute top-10 left-1/2 -translate-x-1/2 w-px h-full bg-[#3B82F6]/5 my-2" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-[#94A3B8]">
-                                            <span className="font-semibold text-white hover:underline cursor-pointer">{item.user}</span> {item.action} <span className="text-[#3B82F6]">{item.target}</span>
-                                        </p>
-                                        <p className="text-xs text-[#475569] mt-1" suppressHydrationWarning>{new Date(item.timestamp).toLocaleString()}</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <Link href="/admin/activity">
-                        <button className="w-full mt-6 py-3 rounded-xl bg-[#1E293B] hover:bg-[#3B82F6]/10 text-sm font-medium text-[#94A3B8] hover:text-white transition-colors border border-[#3B82F6]/5">
-                            View All Activity
-                        </button>
-                    </Link>
                 </motion.div>
             </div>
 

@@ -1,15 +1,15 @@
 
 'use client';
 import { useState, useEffect, use } from 'react';
-import { Clock, CheckCircle2, Circle, AlertCircle, ArrowRight, ArrowLeft, Trophy, Calendar, Quote, Star, CheckSquare } from 'lucide-react';
+import { Clock, CheckCircle2, Circle, AlertCircle, ArrowRight, ArrowLeft, Trophy, Calendar, Quote, Star, CheckSquare, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import ContestTimer from '@/app/components/ContestTimer';
 
 export default function ContestDetailPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
     const [contest, setContest] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [timeLeft, setTimeLeft] = useState('');
     const [status, setStatus] = useState('loading');
 
     const QUOTES = [
@@ -28,47 +28,27 @@ export default function ContestDetailPage({ params: paramsPromise }) {
 
     useEffect(() => {
         if (!contest) return;
+        // Derive status from contest timing
+        const now = new Date();
+        const start = new Date(contest.startTime);
+        const end = new Date(contest.endTime);
+        if (contest.isEnded || now >= end) setStatus('past');
+        else if (now >= start) setStatus('live');
+        else setStatus('upcoming');
 
+        // Re-check every second so status transitions automatically
         const timer = setInterval(() => {
-            calculateTimeLeft();
+            const n = new Date();
+            const s = new Date(contest.startTime);
+            const e = new Date(contest.endTime);
+            if (contest.isEnded || n >= e) setStatus('past');
+            else if (n >= s) setStatus('live');
+            else setStatus('upcoming');
         }, 1000);
-
-        calculateTimeLeft();
-
         return () => clearInterval(timer);
     }, [contest]);
 
-    const calculateTimeLeft = () => {
-        if (!contest) return;
 
-        const now = new Date().getTime();
-        const start = new Date(contest.startTime).getTime();
-        const end = new Date(contest.endTime).getTime();
-
-        let target = start;
-        let newStatus = 'upcoming';
-
-        if (contest.isEnded || now >= end) {
-            newStatus = 'past';
-            setStatus('past');
-            setTimeLeft('Contest Ended');
-            return;
-        } else if (now >= start && now < end) {
-            target = end;
-            newStatus = 'live';
-        }
-
-        setStatus(newStatus);
-
-        const distance = target - now;
-
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        setTimeLeft(`${days > 0 ? days + 'd ' : ''}${hours}h ${minutes}m ${seconds}s`);
-    };
 
     const fetchContestDetails = async () => {
         try {
@@ -142,43 +122,55 @@ export default function ContestDetailPage({ params: paramsPromise }) {
     // --- State 1: Upcoming (Secure Lobby) ---
     if (status === 'upcoming') {
         return (
-            <div className="min-h-screen bg-[#0A0E1A] text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#3B82F6]/8 rounded-full blur-[120px] pointer-events-none" />
-                <div className="relative z-10 text-center max-w-2xl mx-auto space-y-8">
-                    <div className="space-y-4">
-                        <span className="inline-block px-3 py-1 bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] rounded-full text-sm font-bold tracking-wider mb-4">
-                            UPCOMING CONTEST
+            <div className="min-h-screen bg-[#0A0E1A] text-white flex flex-col items-center justify-center relative overflow-hidden">
+                {/* Ambient glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#3B82F6]/6 rounded-full blur-[140px] pointer-events-none" />
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#3B82F6]/30 to-transparent" />
+
+                <div className="relative z-10 text-center max-w-3xl mx-auto px-6 space-y-10">
+                    {/* Badge */}
+                    <div>
+                        <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] rounded-full text-xs font-bold tracking-widest uppercase">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" /> Registered &bull; Waiting to Start
                         </span>
-                        <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-[#94A3B8] tracking-tight">
+                    </div>
+
+                    {/* Title */}
+                    <div className="space-y-3">
+                        <h1 className="text-5xl md:text-7xl font-black bg-clip-text text-transparent bg-gradient-to-b from-white to-[#94A3B8] tracking-tight leading-none">
                             {contest.title}
                         </h1>
-                        <p className="text-xl text-[#94A3B8]">{contest.description}</p>
+                        {contest.description && (
+                            <p className="text-lg text-[#94A3B8]">{contest.description}</p>
+                        )}
                     </div>
 
-                    <div className="bg-[#111827] border border-[#3B82F6]/10 rounded-2xl p-8 backdrop-blur-sm">
-                        <p className="text-sm text-[#94A3B8]/60 uppercase tracking-widest mb-2 font-bold">Starts In</p>
-                        <div className="text-4xl md:text-6xl font-mono font-bold text-white tabular-nums tracking-tight">
-                            {timeLeft}
-                        </div>
-                        <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[#94A3B8]/60">
-                            <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {new Date(contest.startTime).toLocaleDateString()}</span>
-                            <span className="flex items-center gap-2"><Clock className="w-4 h-4" /> {new Date(contest.startTime).toLocaleTimeString()}</span>
+                    {/* Big Timer */}
+                    <div className="bg-[#0d1117] border border-[#3B82F6]/10 rounded-2xl p-8 backdrop-blur-sm">
+                        <ContestTimer
+                            startTime={contest.startTime}
+                            endTime={contest.endTime}
+                            variant="fullscreen"
+                        />
+                        <div className="mt-6 flex items-center justify-center gap-6 text-sm text-[#94A3B8]/50">
+                            <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {new Date(contest.startTime).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
+                            <span className="flex items-center gap-2"><Clock className="w-4 h-4" /> {new Date(contest.startTime).toLocaleTimeString(undefined, { timeStyle: 'short' })}</span>
                         </div>
                     </div>
 
-                    <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/20 p-4 rounded-xl flex items-start gap-3 text-left">
+                    {/* Lock message */}
+                    <div className="bg-[#F59E0B]/8 border border-[#F59E0B]/20 p-4 rounded-xl flex items-start gap-3 text-left">
                         <AlertCircle className="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" />
                         <div>
-                            <h3 className="text-[#F59E0B] font-bold text-sm">Contest Locked</h3>
+                            <h3 className="text-[#F59E0B] font-bold text-sm">Problems are Locked</h3>
                             <p className="text-[#F59E0B]/60 text-sm mt-1">
-                                The problem list will automatically appear here when the countdown reaches zero.
-                                Good luck!
+                                The challenge list will unlock automatically when the countdown hits zero. Stay on this page — it will refresh live.
                             </p>
                         </div>
                     </div>
 
-                    <Link href="/dashboard" className="inline-flex items-center text-[#94A3B8] hover:text-white transition-colors mt-8">
-                        <ArrowRight className="w-4 h-4 mr-2 rotate-180" /> Back to Dashboard
+                    <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#94A3B8] hover:text-white transition-colors">
+                        <ArrowLeft className="w-4 h-4" /> Back to Dashboard
                     </Link>
                 </div>
             </div>
@@ -296,22 +288,28 @@ export default function ContestDetailPage({ params: paramsPromise }) {
     return (
         <div className="min-h-screen bg-[#0A0E1A] text-white selection:bg-[#3B82F6]/30">
             {/* Header */}
-            <div className="border-b border-[#3B82F6]/10 bg-[#111827]/50 backdrop-blur-md sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl font-bold text-white">{contest.title}</h1>
-                        <div className="flex items-center gap-2 text-xs font-mono text-[#94A3B8]/60 mt-1">
-                            <span className="flex items-center gap-1.5 text-[#22D3EE]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] animate-pulse" />
-                                LIVE - Ends in {timeLeft}
-                            </span>
-                        </div>
+            <div className="border-b border-[#3B82F6]/10 bg-[#111827]/60 backdrop-blur-md sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <span className="flex items-center gap-1.5 shrink-0">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Live</span>
+                        </span>
+                        <h1 className="text-lg font-bold text-white truncate">{contest.title}</h1>
                     </div>
-                    <Link href="/dashboard">
-                        <button className="text-sm text-[#94A3B8] hover:text-white transition-colors">
-                            Exit Contest
-                        </button>
-                    </Link>
+                    <div className="flex items-center gap-3 shrink-0">
+                        <ContestTimer
+                            endTime={contest.endTime}
+                            startTime={contest.startTime}
+                            variant="header"
+                            onEnd={() => setStatus('past')}
+                        />
+                        <Link href="/dashboard">
+                            <button className="text-xs font-medium text-[#94A3B8] hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10">
+                                Exit Contest
+                            </button>
+                        </Link>
+                    </div>
                 </div>
             </div>
 
@@ -366,36 +364,53 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                     </div>
 
                     {/* Sidebar */}
-                    <div className="space-y-6">
-                        <div className="bg-[#111827] border border-[#3B82F6]/10 rounded-xl p-6">
-                            <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-[#F59E0B]" /> Your Performance
+                    <div className="space-y-5">
+                        {/* ── Live Timer Card ── */}
+                        <ContestTimer
+                            endTime={contest.endTime}
+                            startTime={contest.startTime}
+                            variant="sidebar"
+                            onEnd={() => setStatus('past')}
+                        />
+
+                        {/* ── Your Performance ── */}
+                        <div className="bg-[#0d1117] border border-[#3B82F6]/10 rounded-xl p-5">
+                            <h3 className="font-bold text-white mb-4 flex items-center gap-2 text-sm">
+                                <Trophy className="w-4 h-4 text-[#F59E0B]" /> Your Progress
                             </h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex justify-between text-sm text-[#94A3B8]/60 mb-1">
-                                        <span>Progress</span>
-                                        <span>{contest.userScore} / {contest.totalProblems}</span>
-                                    </div>
-                                    <div className="w-full h-2 bg-[#0A0E1A] rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-[#22D3EE] transition-all duration-1000"
-                                            style={{ width: `${(contest.userScore / (contest.totalProblems || 1)) * 100}%` }}
-                                        />
-                                    </div>
-                                </div>
+                            <div className="flex justify-between text-sm text-[#94A3B8]/60 mb-2">
+                                <span>Solved</span>
+                                <span className="font-bold text-white">{contest.userScore} <span className="text-[#475569] font-normal">/ {contest.totalProblems}</span></span>
+                            </div>
+                            <div className="w-full h-2 bg-[#0A0E1A] rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-gradient-to-r from-[#22D3EE] to-[#3B82F6] transition-all duration-1000 rounded-full"
+                                    style={{ width: `${(contest.userScore / (contest.totalProblems || 1)) * 100}%` }}
+                                />
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-[#3B82F6]/10 to-[#22D3EE]/5 border border-[#3B82F6]/10 rounded-xl p-6">
-                            <h4 className="font-bold text-[#3B82F6] text-sm mb-2">Instructions</h4>
-                            <ul className="text-sm text-[#94A3B8] space-y-2 list-disc list-inside">
-                                <li>Read problem statements carefully.</li>
-                                <li>Input/Output formats must be exact.</li>
-                                <li>Submit as many times as you like.</li>
-                                <li>Plagiarism will lead to disqualification.</li>
+                        {/* ── Instructions ── */}
+                        <div className="bg-[#0d1117] border border-[#3B82F6]/10 rounded-xl p-5">
+                            <h4 className="font-bold text-[#3B82F6] text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Zap className="w-3.5 h-3.5" /> Contest Rules
+                            </h4>
+                            <ul className="text-xs text-[#94A3B8] space-y-2">
+                                {['Read problem statements carefully.', 'Input/Output formats must be exact.', 'Submit as many times as you like.', 'Plagiarism will lead to disqualification.'].map((rule, i) => (
+                                    <li key={i} className="flex items-start gap-2">
+                                        <span className="text-[#3B82F6] mt-0.5 font-bold">{i + 1}.</span>
+                                        {rule}
+                                    </li>
+                                ))}
                             </ul>
                         </div>
+
+                        {/* ── Leaderboard link ── */}
+                        <Link href={`/dashboard/student/contest/${contest._id}/leaderboard`}>
+                            <button className="w-full py-2.5 text-sm font-medium text-[#94A3B8] hover:text-white border border-white/10 hover:border-[#3B82F6]/30 rounded-xl transition-all hover:bg-[#3B82F6]/5 flex items-center justify-center gap-2">
+                                <Trophy className="w-4 h-4 text-[#F59E0B]" /> View Leaderboard
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </main>

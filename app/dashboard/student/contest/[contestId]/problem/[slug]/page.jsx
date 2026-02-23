@@ -2,10 +2,11 @@
 'use client';
 import { useState, useEffect, use } from 'react';
 import Editor from '@monaco-editor/react';
-import { Loader2, Play, Send, ArrowLeft, Code2, AlertCircle, Terminal, X, CheckCircle2, XCircle, History, FileText, RefreshCw, Eye, FileInput, FileOutput } from 'lucide-react';
+import { Loader2, Play, Send, ArrowLeft, Code2, AlertCircle, Terminal, X, CheckCircle2, XCircle, History, FileText, RefreshCw, Eye, FileInput, FileOutput, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import ContestTimer from '@/app/components/ContestTimer';
 
 export default function ProblemPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
@@ -14,6 +15,11 @@ export default function ProblemPage({ params: paramsPromise }) {
     const [language, setLanguage] = useState('javascript');
     const [code, setCode] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Contest timing
+    const [contest, setContest] = useState(null);
+    const [contestEnded, setContestEnded] = useState(false);
+    const [endedBannerDismissed, setEndedBannerDismissed] = useState(false);
 
     // Tabs & History
     const [leftPanelTab, setLeftPanelTab] = useState('description'); // 'description' | 'submissions'
@@ -54,7 +60,24 @@ export default function ProblemPage({ params: paramsPromise }) {
             setCode(templates['javascript']);
         }
         fetchProblem();
+        fetchContestTiming();
     }, []);
+
+    const fetchContestTiming = async () => {
+        try {
+            const res = await fetch(`/api/contest/${params.contestId}/view`);
+            const data = await res.json();
+            if (data.success) {
+                setContest(data.data);
+                // If already ended, mark immediately
+                if (data.data.isEnded || new Date() >= new Date(data.data.endTime)) {
+                    setContestEnded(true);
+                }
+            }
+        } catch (e) {
+            console.warn('Could not fetch contest timing', e);
+        }
+    };
 
     // 2. Auto-Save Logic
     useEffect(() => {
@@ -266,15 +289,43 @@ export default function ProblemPage({ params: paramsPromise }) {
 
     return (
         <div className="h-screen flex flex-col bg-black text-white overflow-hidden relative">
+            {/* Contest Ended Banner */}
+            {contestEnded && !endedBannerDismissed && (
+                <div className="shrink-0 bg-red-500/15 border-b border-red-500/30 px-4 py-2 flex items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
+                        <Bell className="w-4 h-4 shrink-0" />
+                        <span>Contest has ended. Your submissions are still recorded but the contest is officially closed.</span>
+                    </div>
+                    <button onClick={() => setEndedBannerDismissed(true)} className="text-red-400/60 hover:text-red-400 transition-colors shrink-0">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
             {/* Header */}
             <header className="h-14 border-b border-white/10 bg-white/5 flex items-center justify-between px-4 shrink-0">
-                <div className="flex items-center gap-4">
-                    <Link href={`/contest/${params.contestId}`} className="text-slate-400 hover:text-white transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                    <Link href={`/contest/${params.contestId}`} className="text-slate-400 hover:text-white transition-colors shrink-0">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="font-bold text-lg truncate max-w-md">{problem.title}</h1>
+                    <h1 className="font-bold text-base truncate max-w-xs md:max-w-sm">{problem.title}</h1>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
+                    {/* Contest Timer */}
+                    {contest && (
+                        <ContestTimer
+                            endTime={contest.endTime}
+                            startTime={contest.startTime}
+                            variant="header"
+                            onEnd={() => {
+                                setContestEnded(true);
+                                toast.warning('Contest has ended!', {
+                                    description: 'The contest is now closed. Your submissions have been saved.',
+                                    duration: 6000
+                                });
+                            }}
+                        />
+                    )}
                     <select
                         value={language}
                         onChange={(e) => handleLanguageChange(e.target.value)}

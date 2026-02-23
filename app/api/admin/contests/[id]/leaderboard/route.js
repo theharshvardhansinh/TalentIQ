@@ -17,52 +17,109 @@ export async function GET(req, { params }) {
         const { id } = await params;
         await dbConnect();
 
-        // Verify contest exists
-        const contest = await Contest.findById(id);
+        // Verify contest exists and populate problem slugs
+        const contest = await Contest.findById(id).populate('problems', 'slug title');
         if (!contest) {
             return NextResponse.json({ success: false, message: 'Contest not found' }, { status: 404 });
         }
 
-        // Aggregate submissions for this contest
-        const leaderboard = await Submission.aggregate([
+        const contestObjId = new mongoose.Types.ObjectId(id);
+
+        // ── 1. All unique problems in this contest ──────────────────────────────
+        const contestProblems = (contest.problems || []).map(p => ({
+            slug: p.slug,
+            title: p.title || p.slug,
+        }));
+
+        // ── 2. Per-user: which unique problems did they solve (at least one Accepted)
+        const solvedAgg = await Submission.aggregate([
             {
                 $match: {
-                    contestId: new mongoose.Types.ObjectId(id), // Use ObjectId
-                    status: 'Accepted'
+                    contestId: contestObjId,
+                    status: 'Accepted',
                 }
             },
             {
+                // Deduplicate: one entry per (user, problem)
                 $group: {
-                    _id: { userId: '$userId', problem: '$problemSlug' }, // Groups by user AND distinct problem
+                    _id: { userId: '$userId', problemSlug: '$problemSlug' },
+                    firstAcceptedAt: { $min: '$createdAt' },
                 }
             },
             {
+                // Group by user: collect slug list and count
                 $group: {
                     _id: '$_id.userId',
-                    solvedCount: { $sum: 1 } // Count unique problems solved
+                    solvedSlugs: { $push: '$_id.problemSlug' },
+                    solvedCount: { $sum: 1 },
+                    lastSolvedAt: { $max: '$firstAcceptedAt' },
                 }
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: '_id',
-                    foreignField: '_id',
-                    as: 'user'
-                }
-            },
-            { $unwind: '$user' },
-            {
-                $project: {
-                    _id: 1,
-                    name: '$user.name',
-                    email: '$user.email',
-                    solvedCount: 1
-                }
-            },
-            { $sort: { solvedCount: -1, name: 1 } }
+            }
         ]);
 
-        return NextResponse.json({ success: true, data: leaderboard });
+        // ── 3. Build a map userId → solved info ────────────────────────────────
+        const solvedMap = {};
+        solvedAgg.forEach(row => {
+            solvedMap[row._id.toString()] = {
+                solvedSlugs: row.solvedSlugs,
+                solvedCount: row.solvedCount,
+                lastSolvedAt: row.lastSolvedAt,
+            };
+        });
+
+        // ── 4. Total attempts per user (all statuses) ──────────────────────────
+        const attemptsAgg = await Submission.aggregate([
+            { $match: { contestId: contestObjId } },
+            { $group: { _id: '$userId', totalAttempts: { $sum: 1 } } }
+        ]);
+        const attemptsMap = {};
+        attemptsAgg.forEach(r => { attemptsMap[r._id.toString()] = r.totalAttempts; });
+
+        // ── 5. All registered students for this contest ────────────────────────
+        const registeredUserIds = contest.registeredUsers || [];
+        const users = await User.find(
+            { _id: { $in: registeredUserIds } },
+            'name email'
+        ).lean();
+
+        // ── 6. Build leaderboard rows ──────────────────────────────────────────
+        const rows = users.map(u => {
+            const uid = u._id.toString();
+            const info = solvedMap[uid] || { solvedSlugs: [], solvedCount: 0, lastSolvedAt: null };
+            return {
+                _id: uid,
+                name: u.name,
+                email: u.email,
+                solvedCount: info.solvedCount,
+                solvedSlugs: info.solvedSlugs,
+                totalAttempts: attemptsMap[uid] || 0,
+                lastSolvedAt: info.lastSolvedAt,
+                // Score: each problem is worth equal marks; scale to 100
+                score: contestProblems.length > 0
+                    ? Math.round((info.solvedCount / contestProblems.length) * 100)
+                    : 0,
+            };
+        });
+
+        // Sort: most solved first, then earliest last-solved (tiebreak)
+        rows.sort((a, b) => {
+            if (b.solvedCount !== a.solvedCount) return b.solvedCount - a.solvedCount;
+            if (a.lastSolvedAt && b.lastSolvedAt) return new Date(a.lastSolvedAt) - new Date(b.lastSolvedAt);
+            return 0;
+        });
+
+        return NextResponse.json({
+            success: true,
+            data: rows,
+            meta: {
+                totalStudents: rows.length,
+                totalProblems: contestProblems.length,
+                problems: contestProblems,
+                avgScore: rows.length > 0
+                    ? Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length)
+                    : 0,
+            }
+        });
 
     } catch (error) {
         console.error('Leaderboard error:', error);
