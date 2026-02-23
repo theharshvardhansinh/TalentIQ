@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Clock, FileQuestion, Calendar as CalendarIcon, ArrowLeft, MoreVertical, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ import CreateContestForm from '@/app/components/CreateContestForm';
 import AddProblemForm from '@/app/components/AddProblemForm';
 import ContestLeaderboard from '@/app/components/ContestLeaderboard';
 
-function ContestsPage() {
+function ContestsPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const contestId = searchParams.get('id');
@@ -331,4 +331,14 @@ function ContestsPage() {
     );
 }
 
-export default ContestsPage;
+export default function ContestsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+            </div>
+        }>
+            <ContestsPageContent />
+        </Suspense>
+    );
+}
