@@ -23,7 +23,7 @@ export default function CreateContestForm({ onSuccess }) {
     const handleYearToggle = (year) => {
         setFormData(prev => {
             const current = [...prev.yearLevel];
-            
+
             if (year === 'All') {
                 return { ...prev, yearLevel: ['All'] };
             }
@@ -46,10 +46,16 @@ export default function CreateContestForm({ onSuccess }) {
         e.preventDefault();
         setLoading(true);
         try {
+            const payload = {
+                ...formData,
+                startTime: new Date(formData.startTime).toISOString(),
+                endTime: new Date(formData.endTime).toISOString()
+            };
+
             const res = await fetch('/api/contest/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (data.success) {
@@ -160,11 +166,10 @@ export default function CreateContestForm({ onSuccess }) {
                                         type="button"
                                         key={year}
                                         onClick={() => handleYearToggle(year)}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border flex items-center gap-1.5 ${
-                                            isSelected
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border flex items-center gap-1.5 ${isSelected
                                                 ? 'bg-[#3B82F6]/20 text-[#3B82F6] border-[#3B82F6]/50 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
                                                 : 'bg-[#1E293B] text-[#94A3B8] border-[#3B82F6]/10 hover:bg-[#3B82F6]/5 hover:border-[#3B82F6]/20'
-                                        }`}
+                                            }`}
                                     >
                                         {year}
                                         {isSelected && <Check className="w-3.5 h-3.5" />}
