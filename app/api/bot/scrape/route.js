@@ -1,25 +1,29 @@
 
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 
 async function scrapeCodeChef(url) {
     let browser = null;
     try {
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-        const browserPath = IS_PRODUCTION
-            ? process.env.PUPPETEER_EXECUTABLE_PATH
-            : 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
 
-        browser = await puppeteer.launch({
-            executablePath: browserPath,
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-blink-features=AutomationControlled',
-            ]
-        });
+        if (IS_PRODUCTION) {
+            browser = await puppeteer.connect({
+                browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
+            });
+        } else {
+            const browserPath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+            browser = await puppeteer.launch({
+                executablePath: browserPath,
+                headless: 'new',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-blink-features=AutomationControlled',
+                ]
+            });
+        }
 
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 1080 });

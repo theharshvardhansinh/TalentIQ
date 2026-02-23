@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import ImageKit from 'imagekit';
 
 // Initialize ImageKit
@@ -15,25 +15,29 @@ async function captureProblem(problemUrl) {
     let browser = null;
 
     try {
-        // Launch vanilla puppeteer
-        // Dynamic Path: Uses server's Chrome in production, local Windows Chrome in development
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-        const browserPath = IS_PRODUCTION
-            ? process.env.PUPPETEER_EXECUTABLE_PATH
-            : 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
 
-        browser = await puppeteer.launch({
-            executablePath: browserPath,
-            headless: "new",
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage', // Vital for cloud memory limits
-                '--single-process',         // Improves stability on smaller instances
-                '--no-zygote',
-                '--disable-blink-features=AutomationControlled' // Retaining this for bot evasion
-            ]
-        });
+        if (IS_PRODUCTION) {
+            // Connect to Browserless.io in production
+            browser = await puppeteer.connect({
+                browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`,
+            });
+        } else {
+            // Local development
+            const browserPath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+            browser = await puppeteer.launch({
+                executablePath: browserPath,
+                headless: "new",
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--single-process',
+                    '--no-zygote',
+                    '--disable-blink-features=AutomationControlled'
+                ]
+            });
+        }
 
         const page = await browser.newPage();
 
