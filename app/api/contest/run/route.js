@@ -21,6 +21,14 @@ function getLanguageId(lang) {
 const toBase64 = (str) => Buffer.from(str || "").toString('base64');
 const fromBase64 = (str) => Buffer.from(str || "", 'base64').toString('utf-8');
 
+// Combine user and driver code
+function prepareSourceCode(userCode, driverCodeTemplate) {
+    if (driverCodeTemplate && driverCodeTemplate.includes('{{USER_CODE}}')) {
+        return driverCodeTemplate.replace('{{USER_CODE}}', userCode);
+    }
+    return userCode;
+}
+
 export async function POST(req) {
     try {
         const session = await getSession();
@@ -56,9 +64,15 @@ export async function POST(req) {
         // Execute Parallel Single Submissions (Base64)
         const languageId = getLanguageId(language);
 
+        // Prepare the combined code
+        let finalCode = code;
+        if (problem.driverCode && problem.driverCode[language]) {
+            finalCode = prepareSourceCode(code, problem.driverCode[language]);
+        }
+
         const submissionPromises = casesToRun.map(async (tc) => {
             const payload = {
-                source_code: toBase64(code),
+                source_code: toBase64(finalCode),
                 language_id: languageId,
                 stdin: toBase64(tc.input),
                 expected_output: toBase64(tc.output)

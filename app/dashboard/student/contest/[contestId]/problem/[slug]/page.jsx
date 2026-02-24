@@ -524,7 +524,7 @@ export default function ProblemPage({ params: paramsPromise }) {
 
                 {/* Right Panel: Editor + Result Console */}
                 <Panel defaultSize={50} minSize={20} className="flex flex-col bg-[#1e1e1e] relative">
-                    <PanelGroup direction="horizontal">
+                    <PanelGroup direction="vertical">
                         <Panel defaultSize={consoleOpen ? 60 : 100} minSize={20} className="relative">
                             <Editor
                                 height="100%"
@@ -545,10 +545,10 @@ export default function ProblemPage({ params: paramsPromise }) {
                         {/* Result Console */}
                         {consoleOpen && (
                             <>
-                                <PanelResizeHandle className="w-2 bg-[#1e1e1e] hover:bg-indigo-500/50 cursor-col-resize border-x border-white/5 transition-colors flex items-center justify-center z-10">
-                                    <div className="w-0.5 h-8 bg-white/20 rounded-full" />
+                                <PanelResizeHandle className="h-2 bg-[#1e1e1e] hover:bg-indigo-500/50 cursor-row-resize border-y border-white/5 transition-colors flex items-center justify-center z-10">
+                                    <div className="w-8 h-0.5 bg-white/20 rounded-full" />
                                 </PanelResizeHandle>
-                                <Panel defaultSize={40} minSize={20} className="h-full bg-[#1e1e1e] flex flex-col z-10">
+                                <Panel defaultSize={40} minSize={20} className="w-full bg-[#1e1e1e] flex flex-col z-10">
                                     <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
                                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Test Results</span>
                                         <button onClick={() => setConsoleOpen(false)}><X className="w-4 h-4 text-slate-500 hover:text-white" /></button>

@@ -47,6 +47,12 @@ const ProblemSchema = new mongoose.Schema({
         python: { type: String, default: '' },
         javascript: { type: String, default: '' },
     },
+    driverCode: {
+        cpp: { type: String, default: '' },
+        java: { type: String, default: '' },
+        python: { type: String, default: '' },
+        javascript: { type: String, default: '' },
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
