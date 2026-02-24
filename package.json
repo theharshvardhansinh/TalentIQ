@@ -17,6 +17,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
     "framer-motion": "^12.25.0",
+    "html2canvas": "^1.4.1",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.562.0",

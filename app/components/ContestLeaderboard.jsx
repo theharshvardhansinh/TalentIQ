@@ -72,16 +72,137 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
         return data;
     }, [leaderboard, searchTerm, sortField, sortDir]);
 
+    // ── Certificate PNG generation helpers ──────────────────────────────────
+
+    /** Builds inline-styled HTML for one certificate (html2canvas-friendly). */
+    const buildCertificateHTML = (studentName, contestTitle, rank, date) => {
+        const rankLabels  = { 1: '1st Place 🥇', 2: '2nd Place 🥈', 3: '3rd Place 🥉' };
+        const rankColors  = { 1: '#F59E0B',      2: '#94A3B8',      3: '#CD7F32' };
+        const rankGrad    = {
+            1: 'linear-gradient(135deg,#F59E0B,#D97706)',
+            2: 'linear-gradient(135deg,#94A3B8,#64748B)',
+            3: 'linear-gradient(135deg,#CD7F32,#A0522D)',
+        };
+        return `
+        <div style="width:620px;background:#0A0E1A;padding:40px 30px;font-family:'Segoe UI',Arial,sans-serif;box-sizing:border-box;">
+          <!-- header -->
+          <div style="text-align:center;margin-bottom:28px;">
+            <div style="font-size:26px;font-weight:800;color:#3B82F6;letter-spacing:2px;">⚡ TALENT IQ</div>
+            <div style="font-size:10px;color:#64748B;letter-spacing:5px;margin-top:4px;">DEPARTMENT CODING PLATFORM</div>
+          </div>
+          <!-- card -->
+          <div style="background:linear-gradient(145deg,#111827,#1E293B);border:1px solid rgba(59,130,246,0.2);border-radius:16px;overflow:hidden;">
+            <div style="height:5px;background:${rankGrad[rank]};"></div>
+            <div style="padding:40px 36px;">
+              <!-- title -->
+              <div style="text-align:center;margin-bottom:26px;">
+                <div style="font-size:11px;color:#64748B;letter-spacing:6px;text-transform:uppercase;margin-bottom:10px;">Certificate of Achievement</div>
+                <div style="width:60px;height:2px;background:${rankGrad[rank]};margin:0 auto;"></div>
+              </div>
+              <!-- rank badge -->
+              <div style="text-align:center;margin-bottom:22px;">
+                <span style="display:inline-block;background:${rankGrad[rank]};color:#0A0E1A;font-size:16px;font-weight:800;padding:10px 30px;border-radius:50px;letter-spacing:1px;">
+                  ${rankLabels[rank]}
+                </span>
+              </div>
+              <!-- name -->
+              <div style="text-align:center;margin-bottom:22px;">
+                <div style="font-size:13px;color:#94A3B8;margin-bottom:10px;">This is to certify that</div>
+                <div style="font-size:34px;font-weight:900;color:#FFFFFF;letter-spacing:0.5px;line-height:1.2;">${studentName}</div>
+                <div style="font-size:13px;color:#94A3B8;margin-top:12px;line-height:1.8;">
+                  has demonstrated outstanding coding skills and secured
+                  <span style="color:${rankColors[rank]};font-weight:700;"> ${rankLabels[rank]}</span>
+                  in the coding contest
+                </div>
+              </div>
+              <!-- contest box -->
+              <div style="text-align:center;margin:22px 0;padding:18px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);border-radius:10px;">
+                <div style="font-size:10px;color:#64748B;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;">Contest</div>
+                <div style="font-size:20px;font-weight:700;color:#3B82F6;">${contestTitle}</div>
+              </div>
+              <!-- date -->
+              <div style="text-align:center;margin-top:18px;">
+                <div style="font-size:11px;color:#475569;letter-spacing:2px;">AWARDED ON</div>
+                <div style="font-size:14px;color:#94A3B8;margin-top:4px;font-weight:500;">${date}</div>
+              </div>
+              <!-- signature line -->
+              <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(59,130,246,0.1);display:flex;justify-content:space-around;">
+                <div style="text-align:center;">
+                  <div style="width:110px;height:1px;background:#334155;margin:0 auto 8px;"></div>
+                  <div style="font-size:11px;color:#64748B;">Department Head</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="width:110px;height:1px;background:#334155;margin:0 auto 8px;"></div>
+                  <div style="font-size:11px;color:#64748B;">Contest Organizer</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- footer -->
+          <div style="text-align:center;margin-top:20px;">
+            <div style="font-size:11px;color:#475569;line-height:1.8;">
+              Computer Engineering Department · BVM Engineering College<br>
+              <span style="color:#3B82F6;">techtriquetra@gmail.com</span>
+            </div>
+          </div>
+        </div>`;
+    };
+
+    /** Renders a certificate HTML string off-screen and returns a base64 PNG string. */
+    const generateCertificatePNG = async (studentName, contestTitle, rank) => {
+        const html2canvas = (await import('html2canvas')).default;
+        const date = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;';
+        wrapper.innerHTML = buildCertificateHTML(studentName, contestTitle, rank, date);
+        document.body.appendChild(wrapper);
+
+        try {
+            const canvas = await html2canvas(wrapper.firstElementChild, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#0A0E1A',
+            });
+            // Return raw base64 (no data-url prefix) for the API
+            return canvas.toDataURL('image/png').split(',')[1];
+        } finally {
+            document.body.removeChild(wrapper);
+        }
+    };
+
     const handleSendCertificates = async () => {
-        if (!confirm('Send certificates to the top 3 winners via email?')) return;
+        if (!confirm('Generate PNG certificates and send to the top 3 winners?')) return;
         setSendingCerts(true);
         setCertResult(null);
         try {
-            const res = await fetch(`/api/admin/contests/${contest._id}/send-certificates`, { method: 'POST' });
+            // leaderboard is already sorted best-first by the server
+            const top3 = leaderboard.slice(0, 3);
+            if (top3.length === 0) {
+                setCertResult({ success: false, message: 'No participants found.' });
+                return;
+            }
+
+            // Generate a PNG for each winner in the browser
+            const certificates = [];
+            for (let i = 0; i < top3.length; i++) {
+                const winner = top3[i];
+                const pngBase64 = await generateCertificatePNG(winner.name, contest.title, i + 1);
+                certificates.push({ name: winner.name, email: winner.email, rank: i + 1, pngBase64 });
+            }
+
+            // Send all PNGs to the backend for emailing
+            const res = await fetch(`/api/admin/contests/${contest._id}/send-certificates`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ certificates }),
+            });
             const data = await res.json();
             setCertResult(data);
-        } catch {
-            setCertResult({ success: false, message: 'Failed to send certificates' });
+        } catch (err) {
+            console.error(err);
+            setCertResult({ success: false, message: 'Failed to generate or send certificates.' });
         } finally {
             setSendingCerts(false);
         }
