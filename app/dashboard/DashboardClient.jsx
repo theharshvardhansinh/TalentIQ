@@ -61,7 +61,7 @@ export default function DashboardClient({ initialRole, userId }) {
     };
 
     if (showLeaderboard) {
-        return <ContestLeaderboard contest={showLeaderboard} onBack={() => setShowLeaderboard(null)} />;
+        return <ContestLeaderboard contest={showLeaderboard} isVolunteer={isVolunteer} onBack={() => setShowLeaderboard(null)} />;
     }
 
     const ContestCard = ({ contest, status }) => {

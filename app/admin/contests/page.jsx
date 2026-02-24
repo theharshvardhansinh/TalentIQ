@@ -110,6 +110,7 @@ function ContestsPageContent() {
                 <ContestLeaderboard
                     contest={selectedContest}
                     onBack={handleBack}
+                    isVolunteer={true}
                 />
             );
         }
@@ -150,11 +151,10 @@ function ContestsPageContent() {
                             {/* Live Data Toggle Button */}
                             <button
                                 onClick={() => setShowLiveData(prev => !prev)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-                                    showLiveData
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${showLiveData
                                         ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-lg shadow-emerald-500/10'
                                         : 'bg-[#1E293B] hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-400 border-white/10 hover:border-emerald-500/30'
-                                }`}
+                                    }`}
                             >
                                 <BarChart2 className="w-4 h-4" />
                                 {showLiveData ? 'Hide Live Data' : 'View Live Data'}
@@ -183,6 +183,7 @@ function ContestsPageContent() {
                         <ContestLeaderboard
                             contest={selectedContest}
                             onBack={() => setShowLiveData(false)}
+                            isVolunteer={true}
                         />
                     </div>
                 )}

@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import {
     Trophy, Loader2, ArrowLeft, Search, Mail, CheckCircle2,
@@ -6,7 +6,7 @@ import {
     ChevronDown, ChevronUp, CheckCheck, X as XIcon
 } from 'lucide-react';
 
-export default function ContestLeaderboard({ contest, onBack }) {
+export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
     const [leaderboard, setLeaderboard] = useState([]);
     const [meta, setMeta] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function ContestLeaderboard({ contest, onBack }) {
         if (!contest) return;
         const fetchLeaderboard = async () => {
             try {
-                const res = await fetch(`/api/admin/contests/${contest._id}/leaderboard`);
+                const res = await fetch(isVolunteer ? `/api/admin/contests/${contest._id}/leaderboard` : `/api/contest/${contest._id}/leaderboard`);
                 const data = await res.json();
                 if (data.success) {
                     setLeaderboard(data.data);
@@ -157,14 +157,16 @@ export default function ContestLeaderboard({ contest, onBack }) {
                         >
                             <Download className="w-4 h-4" /> Export CSV
                         </button>
-                        <button
-                            onClick={handleSendCertificates}
-                            disabled={sendingCerts || leaderboard.length === 0}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-[#0A0E1A] font-bold rounded-xl transition-all shadow-lg shadow-[#F59E0B]/20 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                        >
-                            {sendingCerts ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                            {sendingCerts ? 'Sending...' : 'Send Certificates (Top 3)'}
-                        </button>
+                        {isVolunteer && (
+                            <button
+                                onClick={handleSendCertificates}
+                                disabled={sendingCerts || leaderboard.length === 0}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-[#0A0E1A] font-bold rounded-xl transition-all shadow-lg shadow-[#F59E0B]/20 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            >
+                                {sendingCerts ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                                {sendingCerts ? 'Sending...' : 'Send Certificates (Top 3)'}
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -288,7 +290,7 @@ export default function ContestLeaderboard({ contest, onBack }) {
                                     const isExpanded = expandedRow === student._id;
                                     const hasActivity = student.totalAttempts > 0;
                                     return (
-                                        <Fragment key={student._id}>
+                                        <React.Fragment key={`user-${student._id}`}>
                                             <tr
                                                 className={`group transition-colors cursor-pointer ${isExpanded ? 'bg-[#1a2332]' : 'hover:bg-[#1E293B]'}`}
                                                 onClick={() => setExpandedRow(isExpanded ? null : student._id)}
@@ -432,7 +434,7 @@ export default function ContestLeaderboard({ contest, onBack }) {
                                                     </td>
                                                 </tr>
                                             )}
-                                        </Fragment>
+                                        </React.Fragment>
                                     );
                                 })}
 
