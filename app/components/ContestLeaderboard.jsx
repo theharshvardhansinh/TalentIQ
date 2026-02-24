@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import {
     Trophy, Loader2, ArrowLeft, Search, Mail, CheckCircle2,
-    AlertCircle, Users, BookOpen, BarChart2, Star, Download,
+    AlertCircle, Users, BookOpen, BarChart2,
     ChevronDown, ChevronUp, CheckCheck, X as XIcon
 } from 'lucide-react';
 
@@ -87,26 +87,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
         }
     };
 
-    // CSV Export
-    const handleExportCSV = () => {
-        if (!meta) return;
-        const problemHeaders = (meta.problems || []).map(p => `"${p.title}"`).join(',');
-        const rows = [
-            ['Rank', 'Name', 'Email', 'Score (%)', 'Problems Solved', 'Total Attempts', ...(meta.problems || []).map(p => p.title)],
-        ];
-        processedData.forEach((s, i) => {
-            const probCols = (meta.problems || []).map(p =>
-                s.solvedSlugs.includes(p.slug) ? 'Solved' : 'Not Solved'
-            );
-            rows.push([i + 1, s.name, s.email, s.score, s.solvedCount, s.totalAttempts, ...probCols]);
-        });
-        const csv = rows.map(r => r.join(',')).join('\n');
-        const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        const a = document.createElement('a');
-        a.href = uri;
-        a.download = `${contest.title?.replace(/\s+/g, '_')}_results.csv`;
-        a.click();
-    };
+
 
     const SortIcon = ({ field }) => (
         sortField === field
@@ -150,13 +131,6 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                            onClick={handleExportCSV}
-                            disabled={loading || leaderboard.length === 0}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-white font-medium rounded-xl transition-all text-sm border border-white/10 disabled:opacity-50"
-                        >
-                            <Download className="w-4 h-4" /> Export CSV
-                        </button>
                         {isVolunteer && (
                             <button
                                 onClick={handleSendCertificates}
