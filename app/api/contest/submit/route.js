@@ -86,8 +86,9 @@ export async function POST(req) {
 
                 if (!res.ok) {
                     return {
-                        status: { id: 13, description: `API Error: ${res.statusText}` },
-                        stdout: null, stderr: null, compile_output: null, message: "Judge0 Request Failed"
+                        status: { id: 13, description: "Connection Error" }, // Standardize on Connection Error for health check
+                        stdout: null, stderr: null, compile_output: null,
+                        message: toBase64(`Judge0 API Error: ${res.statusText}`)
                     };
                 }
                 return await res.json();
@@ -95,7 +96,8 @@ export async function POST(req) {
                 console.error("Judge0 Fetch Error:", err);
                 return {
                     status: { id: 13, description: "Connection Error" },
-                    stdout: null, stderr: null, compile_output: null, message: err.message
+                    stdout: null, stderr: null, compile_output: null,
+                    message: toBase64(`Connection Failed: ${err.message}`)
                 };
             }
         });

@@ -34,6 +34,13 @@ export async function GET(req, { params }) {
 
         const isRegistered = contest.registeredUsers && contest.registeredUsers.includes(session.user.id);
 
+        if (isStudent && !isRegistered) {
+            await Contest.findByIdAndUpdate(
+                id,
+                { $addToSet: { registeredUsers: session.user.id } }
+            );
+        }
+
         // 2. Security Check
         // If student AND contest hasn't started, hide problems
         if (isStudent && isUpcoming) {

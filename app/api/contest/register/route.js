@@ -35,15 +35,18 @@ export async function POST(req) {
         }
 
         // Add user to registeredUsers if not already there
-        if (!contest.registeredUsers.includes(userId)) {
-            contest.registeredUsers.push(userId);
-            await contest.save();
-        }
+        await Contest.findByIdAndUpdate(
+            contestId,
+            { $addToSet: { registeredUsers: userId } }
+        );
+
+        // Fetch the updated contest to get the new count
+        const updatedContest = await Contest.findById(contestId);
 
         return NextResponse.json({
             success: true,
             message: 'Successfully registered for the contest',
-            registeredCount: contest.registeredUsers.length
+            registeredCount: updatedContest.registeredUsers.length
         });
 
     } catch (error) {
