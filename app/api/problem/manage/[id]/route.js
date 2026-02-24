@@ -47,7 +47,8 @@ export async function PUT(req, { params }) {
             outputFormat: body.outputFormat,
             tags: body.tags,
             testCases: body.testCases,
-            starterCode: body.starterCode
+            starterCode: body.starterCode,
+            driverCode: body.driverCode
         };
 
         const problem = await Problem.findByIdAndUpdate(id, updateData, { new: true });

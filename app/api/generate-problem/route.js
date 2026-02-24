@@ -89,18 +89,27 @@ export async function POST(req) {
                         { "input": "...", "output": "...", "isPublic": false }
                     ],
                     "starterCode": {
-                        "cpp": "// C++ starter...",
-                        "java": "// Java starter...",
-                        "python": "# Python starter...",
-                        "javascript": "// JS starter..."
+                        "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
+                        "java": "class Solution {\\n    // ...\\n}",
+                        "python": "class Solution:\\n    def solve(self, ...):",
+                        "javascript": "var solve = function(...) {"
+                    },
+                    "driverCode": {
+                        "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
+                        "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
+                        "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
+                        "javascript": "const fs = require('fs');\\n\\n{{USER_CODE}}\\n\\nfunction main() { /* parse stdin, call solve, print */ }\\nmain();"
                     }
                 }
                 
                 Ensure there are exactly 2 public and 3 hidden test cases.
                 For "starterCode":
-                1. Provide standard competitive programming boilerplate with a simple main function (e.g., int main() in C++). Do NOT use a class-based structure like "class Solution".
-                2. Leave the core logic empty (do NOT provide the solution).
-                3. Include code to parse input from standard input and print output to standard output based on format.
+                1. Provide a LeetCode-style class or function signature (e.g., class Solution) that ONLY takes parsed inputs as arguments.
+                2. DO NOT include any standard input/output parsing (like cin, Scanner, input()) in the starterCode.
+                For "driverCode":
+                1. Write the hidden execution boilerplate code that parses standard input, instantiates/calls the function/class defined in starterCode, and prints to standard output.
+                2. The driverCode MUST include the exact literal string "{{USER_CODE}}" precisely where the user's starterCode should be injected.
+                3. Make sure the driverCode accurately parses the inputs based on the inputFormat and prints the result exactly as outputFormat demands.
                 
                 Return ONLY the JSON.
             `;
@@ -152,15 +161,27 @@ export async function POST(req) {
                         { "input": "...", "output": "...", "isPublic": false }
                     ],
                     "starterCode": {
-                        "cpp": "// C++ starter...",
-                        "java": "// Java starter...",
-                        "python": "# Python starter...",
-                        "javascript": "// JS starter..."
+                        "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
+                        "java": "class Solution {\\n    // ...\\n}",
+                        "python": "class Solution:\\n    def solve(self, ...):",
+                        "javascript": "var solve = function(...) {"
+                    },
+                    "driverCode": {
+                        "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
+                        "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
+                        "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
+                        "javascript": "const fs = require('fs');\\n\\n{{USER_CODE}}\\n\\nfunction main() { /* parse stdin, call solve, print */ }\\nmain();"
                     }
                 }
                 
                 Ensure there are exactly 2 public and 3 hidden test cases.
-                For "starterCode", create standard competitive programming boilerplate with a simple main function (e.g., int main() in C++) reading from std input. Do NOT use a class-based "Solution" approach. Leave the core logic empty.
+                For "starterCode":
+                1. Provide a LeetCode-style class or function signature (e.g., class Solution) that ONLY takes parsed inputs as arguments.
+                2. DO NOT include any standard input/output parsing in the starterCode.
+                For "driverCode":
+                1. Write the hidden execution code that parses standard input, calls the function/class defined in starterCode, and prints to standard output.
+                2. The driverCode MUST include the exact literal string "{{USER_CODE}}" where the user's starterCode should be injected.
+                3. The driverCode must accurately map parsed standard input to the function signature of starterCode.
                 
                 Return ONLY the JSON.
             `;
@@ -226,18 +247,27 @@ export async function POST(req) {
                         { "input": "hidden3", "output": "hidden_output3", "isPublic": false }
                     ],
                     "starterCode": {
-                        "cpp": "// Generated C++ starter code with simple main function boilerplate",
-                        "java": "// Generated Java starter code with simple main class boilerplate",
-                        "python": "# Generated Python starter code reading from standard input",
-                        "javascript": "// Generated JavaScript starter code reading from standard input"
+                        "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
+                        "java": "class Solution {\\n    // ...\\n}",
+                        "python": "class Solution:\\n    def solve(self, ...):",
+                        "javascript": "var solve = function(...) {"
+                    },
+                    "driverCode": {
+                        "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
+                        "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
+                        "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
+                        "javascript": "const fs = require('fs');\\n\\n{{USER_CODE}}\\n\\nfunction main() { /* parse stdin, call solve, print */ }\\nmain();"
                     }
                 }
                 Ensure there are exactly 2 public and 3 hidden test cases as requested.
                 
                 For "starterCode":
-                1. Provide standard competitive programming boilerplate with a simple main function (e.g., int main() in C++). Do NOT use a class-based approach like "class Solution".
-                2. CRITICAL: DO NOT IMPLEMENT THE SOLUTION LOGIC. The logic section MUST be empty.
-                3. Include code that reads Input from standard input according to inputFormat and prints the Output to standard output.
+                1. Provide a LeetCode-style class or function signature (e.g., class Solution) that ONLY takes parsed inputs as arguments.
+                2. DO NOT include any standard input/output parsing in the starterCode.
+                For "driverCode":
+                1. Write the hidden execution code that parses standard input, calls the function/class defined in starterCode, and prints to standard output.
+                2. The driverCode MUST include the exact literal string "{{USER_CODE}}" precisely where the user's starterCode should be injected.
+                3. The driverCode must accurately map parsed standard input to the function signature of starterCode.
                 
                 Return ONLY the JSON. No markdown, no extra text.
             `;
