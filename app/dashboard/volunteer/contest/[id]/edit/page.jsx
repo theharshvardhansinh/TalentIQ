@@ -42,9 +42,21 @@ export default function EditContestPage({ params: paramsPromise }) {
             if (data.success) {
                 setContest(data.data);
 
+                /**
+                 * Convert a UTC ISO string (from DB) to a "datetime-local" input value
+                 * in the USER'S LOCAL timezone so the pre-filled times look correct.
+                 *
+                 * Problem: new Date(iso).toISOString() is always UTC, so IST users
+                 * (UTC+5:30) would see times that are 5h30m behind what they originally entered.
+                 *
+                 * Fix: subtract the local timezone offset to get the local wall-clock time.
+                 */
                 const formatForInput = (iso) => {
                     if (!iso) return '';
-                    return new Date(iso).toISOString().slice(0, 16);
+                    const d = new Date(iso);
+                    // Shift the date by the local offset so toISOString gives local wall-clock time
+                    const localMs = d.getTime() - d.getTimezoneOffset() * 60000;
+                    return new Date(localMs).toISOString().slice(0, 16);
                 };
 
                 setFormData({
@@ -117,11 +129,33 @@ export default function EditContestPage({ params: paramsPromise }) {
         });
     };
 
+    /**
+     * Convert a datetime-local string (e.g. "2026-02-24T06:13") to a proper ISO
+     * string that preserves the user's LOCAL time intention before sending to API.
+     *
+     * Without this, the raw string is treated as UTC by JS/MongoDB, causing the
+     * stored time to be 5h30m EARLIER than intended for IST users, which then
+     * displays as 5h30m LATER when shown in local time again.
+     */
+    const localDatetimeToISO = (datetimeLocalStr) => {
+        if (!datetimeLocalStr) return '';
+        const offsetMin = new Date().getTimezoneOffset(); // e.g. -330 for IST
+        const sign = offsetMin <= 0 ? '+' : '-';
+        const absMin = Math.abs(offsetMin);
+        const hh = String(Math.floor(absMin / 60)).padStart(2, '0');
+        const mm = String(absMin % 60).padStart(2, '0');
+        return new Date(`${datetimeLocalStr}:00${sign}${hh}:${mm}`).toISOString();
+    };
+
     const handleSaveContest = async () => {
         setSaving(true);
         try {
             const payload = {
                 ...formData,
+                // Convert datetime-local strings to proper UTC ISO strings
+                // so the stored times match what the admin typed
+                startTime: localDatetimeToISO(formData.startTime),
+                endTime: localDatetimeToISO(formData.endTime),
                 problems: selectedProblems.map(p => p._id)
             };
 
