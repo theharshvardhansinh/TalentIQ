@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import Editor from '@monaco-editor/react';
 import { Loader2, Play, Send, ArrowLeft, Code2, AlertCircle, Terminal, X, CheckCircle2, XCircle, History, FileText, RefreshCw, Eye, FileInput, FileOutput, Bell } from 'lucide-react';
+import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from "react-resizable-panels";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -340,9 +341,9 @@ export default function ProblemPage({ params: paramsPromise }) {
             </header>
 
             {/* Main Split View */}
-            <div className="flex-1 flex overflow-hidden">
+            <PanelGroup direction="horizontal" className="flex-1 flex overflow-hidden">
                 {/* Left Panel */}
-                <div className="w-1/2 border-r border-white/10 flex flex-col overflow-hidden bg-[#0d0d0d]">
+                <Panel defaultSize={50} minSize={20} className="border-r border-white/10 flex flex-col overflow-hidden bg-[#0d0d0d]">
                     {/* Tab Header */}
                     <div className="flex border-b border-white/10 bg-white/5 shrink-0">
                         <button
@@ -515,26 +516,127 @@ export default function ProblemPage({ params: paramsPromise }) {
                             </div>
                         )}
                     </div>
-                </div>
+                </Panel>
+
+                <PanelResizeHandle className="w-2 bg-[#1e1e1e] hover:bg-indigo-500/50 cursor-col-resize border-x border-white/5 transition-colors flex items-center justify-center z-10">
+                    <div className="w-0.5 h-8 bg-white/20 rounded-full" />
+                </PanelResizeHandle>
 
                 {/* Right Panel: Editor + Result Console */}
-                <div className="w-1/2 flex flex-col bg-[#1e1e1e] relative">
-                    <div className={`flex-1 relative transition-all duration-300 ${consoleOpen ? 'h-[50%]' : 'h-full'}`}>
-                        <Editor
-                            height="100%"
-                            theme="vs-dark"
-                            language={language}
-                            value={code}
-                            onChange={(value) => setCode(value)}
-                            options={{
-                                minimap: { enabled: false },
-                                fontSize: 14,
-                                scrollBeyondLastLine: false,
-                                automaticLayout: true,
-                                padding: { top: 16, bottom: 16 }
-                            }}
-                        />
-                    </div>
+                <Panel defaultSize={50} minSize={20} className="flex flex-col bg-[#1e1e1e] relative">
+                    <PanelGroup direction="horizontal">
+                        <Panel defaultSize={consoleOpen ? 60 : 100} minSize={20} className="relative">
+                            <Editor
+                                height="100%"
+                                theme="vs-dark"
+                                language={language}
+                                value={code}
+                                onChange={(value) => setCode(value)}
+                                options={{
+                                    minimap: { enabled: false },
+                                    fontSize: 14,
+                                    scrollBeyondLastLine: false,
+                                    automaticLayout: true,
+                                    padding: { top: 16, bottom: 16 }
+                                }}
+                            />
+                        </Panel>
+
+                        {/* Result Console */}
+                        {consoleOpen && (
+                            <>
+                                <PanelResizeHandle className="w-2 bg-[#1e1e1e] hover:bg-indigo-500/50 cursor-col-resize border-x border-white/5 transition-colors flex items-center justify-center z-10">
+                                    <div className="w-0.5 h-8 bg-white/20 rounded-full" />
+                                </PanelResizeHandle>
+                                <Panel defaultSize={40} minSize={20} className="h-full bg-[#1e1e1e] flex flex-col z-10">
+                                    <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Test Results</span>
+                                        <button onClick={() => setConsoleOpen(false)}><X className="w-4 h-4 text-slate-500 hover:text-white" /></button>
+                                    </div>
+
+                                    <div className="flex-1 overflow-hidden flex flex-col md:flex-row h-full">
+                                        {isSubmitting || isRunning ? (
+                                            <div className="w-full flex flex-col items-center justify-center p-10 text-slate-400 gap-3">
+                                                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                                                <span className="animate-pulse">{isSubmitting ? 'Submitting Code...' : 'Running Tests...'}</span>
+                                            </div>
+                                        ) : submissionResult ? (
+                                            <>
+                                                {/* Sidebar Tabs */}
+                                                <div className="w-full md:w-48 bg-[#161616] border-r border-white/5 flex flex-col overflow-y-auto">
+                                                    <div className="p-3 border-b border-white/5">
+                                                        <div className={`text-lg font-bold flex items-center gap-2 ${submissionResult.status === 'Accepted' ? 'text-emerald-500' :
+                                                            submissionResult.status === 'Runtime Error' ? 'text-red-500' : 'text-rose-500'
+                                                            }`}>
+                                                            {submissionResult.status === 'Accepted' && <CheckCircle2 className="w-5 h-5" />}
+                                                            {submissionResult.status !== 'Accepted' && <XCircle className="w-5 h-5" />}
+                                                            {submissionResult.status}
+                                                        </div>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            {submissionResult.passed} / {submissionResult.total} passed
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="flex-1 p-2 space-y-2">
+                                                        {submissionResult.results?.map((res, idx) => (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => setActiveCaseTab(idx)}
+                                                                className={`w-full text-left px-3 py-2 rounded text-xs font-medium transition-colors flex items-center justify-between group ${activeCaseTab === idx ? 'bg-white/10 text-white' : 'text-slate-500 hover:bg-white/5'
+                                                                    }`}
+                                                            >
+                                                                <span>Case {idx + 1}</span>
+                                                                <div className={`w-2 h-2 rounded-full ${res.status === 'Passed' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Detailed View */}
+                                                <div className="flex-1 bg-[#1e1e1e] p-6 overflow-y-auto">
+                                                    {(submissionResult.message || submissionResult.stderr) ? (
+                                                        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded text-red-200 font-mono text-sm whitespace-pre-wrap">
+                                                            {submissionResult.message || submissionResult.stderr}
+                                                        </div>
+                                                    ) : submissionResult.results && submissionResult.results[activeCaseTab] ? (
+                                                        <div className="space-y-4 animate-in fade-in duration-300">
+                                                            <div>
+                                                                <label className="text-xs text-slate-500 uppercase font-bold">Input</label>
+                                                                <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
+                                                                    {submissionResult.results[activeCaseTab].input}
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-xs text-slate-500 uppercase font-bold">Expected Output</label>
+                                                                <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
+                                                                    {submissionResult.results[activeCaseTab].expectedOutput}
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-xs text-slate-500 uppercase font-bold">Your Output</label>
+                                                                <div className={`mt-1 border p-3 rounded font-mono text-sm whitespace-pre-wrap ${submissionResult.results[activeCaseTab].status === 'Passed'
+                                                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                                                                    : 'bg-red-500/10 border-red-500/20 text-red-300'
+                                                                    }`}>
+                                                                    {submissionResult.results[activeCaseTab].actualOutput}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-center text-slate-500 mt-10">Select a test case to view details</div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="w-full flex items-center justify-center text-slate-600 text-sm">
+                                                Click submit to see results.
+                                            </div>
+                                        )}
+                                    </div>
+                                </Panel>
+                            </>
+                        )}
+                    </PanelGroup>
 
                     {/* Action Bar */}
                     <div className="h-14 border-t border-white/10 bg-[#1e1e1e] p-2 flex items-center justify-between px-4 shrink-0 z-20">
@@ -563,98 +665,8 @@ export default function ProblemPage({ params: paramsPromise }) {
                             </button>
                         </div>
                     </div>
-
-                    {/* Result Console */}
-                    {consoleOpen && (
-                        <div className="absolute bottom-14 w-full h-[50%] bg-[#1e1e1e] border-t border-white/10 overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 duration-300 z-10 shadow-2xl">
-                            <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Test Results</span>
-                                <button onClick={() => setConsoleOpen(false)}><X className="w-4 h-4 text-slate-500 hover:text-white" /></button>
-                            </div>
-
-                            <div className="flex-1 overflow-hidden flex flex-col md:flex-row h-full">
-                                {isSubmitting || isRunning ? (
-                                    <div className="w-full flex flex-col items-center justify-center p-10 text-slate-400 gap-3">
-                                        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-                                        <span className="animate-pulse">{isSubmitting ? 'Submitting Code...' : 'Running Tests...'}</span>
-                                    </div>
-                                ) : submissionResult ? (
-                                    <>
-                                        {/* Sidebar Tabs */}
-                                        <div className="w-full md:w-48 bg-[#161616] border-r border-white/5 flex flex-col overflow-y-auto">
-                                            <div className="p-3 border-b border-white/5">
-                                                <div className={`text-lg font-bold flex items-center gap-2 ${submissionResult.status === 'Accepted' ? 'text-emerald-500' :
-                                                    submissionResult.status === 'Runtime Error' ? 'text-red-500' : 'text-rose-500'
-                                                    }`}>
-                                                    {submissionResult.status === 'Accepted' && <CheckCircle2 className="w-5 h-5" />}
-                                                    {submissionResult.status !== 'Accepted' && <XCircle className="w-5 h-5" />}
-                                                    {submissionResult.status}
-                                                </div>
-                                                <p className="text-xs text-slate-500 mt-1">
-                                                    {submissionResult.passed} / {submissionResult.total} passed
-                                                </p>
-                                            </div>
-
-                                            <div className="flex-1 p-2 space-y-2">
-                                                {submissionResult.results?.map((res, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        onClick={() => setActiveCaseTab(idx)}
-                                                        className={`w-full text-left px-3 py-2 rounded text-xs font-medium transition-colors flex items-center justify-between group ${activeCaseTab === idx ? 'bg-white/10 text-white' : 'text-slate-500 hover:bg-white/5'
-                                                            }`}
-                                                    >
-                                                        <span>Case {idx + 1}</span>
-                                                        <div className={`w-2 h-2 rounded-full ${res.status === 'Passed' ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Detailed View */}
-                                        <div className="flex-1 bg-[#1e1e1e] p-6 overflow-y-auto">
-                                            {(submissionResult.message || submissionResult.stderr) ? (
-                                                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded text-red-200 font-mono text-sm whitespace-pre-wrap">
-                                                    {submissionResult.message || submissionResult.stderr}
-                                                </div>
-                                            ) : submissionResult.results && submissionResult.results[activeCaseTab] ? (
-                                                <div className="space-y-4 animate-in fade-in duration-300">
-                                                    <div>
-                                                        <label className="text-xs text-slate-500 uppercase font-bold">Input</label>
-                                                        <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
-                                                            {submissionResult.results[activeCaseTab].input}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs text-slate-500 uppercase font-bold">Expected Output</label>
-                                                        <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
-                                                            {submissionResult.results[activeCaseTab].expectedOutput}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs text-slate-500 uppercase font-bold">Your Output</label>
-                                                        <div className={`mt-1 border p-3 rounded font-mono text-sm whitespace-pre-wrap ${submissionResult.results[activeCaseTab].status === 'Passed'
-                                                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                                                            : 'bg-red-500/10 border-red-500/20 text-red-300'
-                                                            }`}>
-                                                            {submissionResult.results[activeCaseTab].actualOutput}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-center text-slate-500 mt-10">Select a test case to view details</div>
-                                            )}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="w-full flex items-center justify-center text-slate-600 text-sm">
-                                        Click submit to see results.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+                </Panel>
+            </PanelGroup>
 
             {/* VIEW SUBMISSION MODAL */}
             {viewSubmission && (

@@ -1,0 +1,71 @@
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 31.5s
+  Running TypeScript ...
+  Collecting page data using 3 workers ...
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+  Generating static pages using 3 workers (0/33) ...
+  Generating static pages using 3 workers (8/33) 
+  Generating static pages using 3 workers (16/33) 
+  Generating static pages using 3 workers (24/33) 
+✓ Generating static pages using 3 workers (33/33) in 1600.6ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/activity
+├ ○ /admin/contests
+├ ○ /admin/participants
+├ ○ /admin/volunteers
+├ ƒ /api/admin/activity
+├ ƒ /api/admin/contests
+├ ƒ /api/admin/contests/[id]
+├ ƒ /api/admin/contests/[id]/leaderboard
+├ ƒ /api/admin/contests/[id]/send-certificates
+├ ƒ /api/admin/participants
+├ ƒ /api/admin/volunteers
+├ ƒ /api/auth/forgot-password
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/reset-password
+├ ƒ /api/auth/signup
+├ ƒ /api/bot/scrape
+├ ƒ /api/bot/screenshot
+├ ƒ /api/contest/[id]
+├ ƒ /api/contest/[id]/leaderboard
+├ ƒ /api/contest/[id]/view
+├ ƒ /api/contest/create
+├ ƒ /api/contest/list
+├ ƒ /api/contest/register
+├ ƒ /api/contest/run
+├ ƒ /api/contest/submission/history
+├ ƒ /api/contest/submit
+├ ƒ /api/generate-problem
+├ ƒ /api/problem/[slug]
+├ ƒ /api/problem/add
+├ ƒ /api/problem/manage/[id]
+├ ƒ /api/upload-image
+├ ƒ /contest/[id]
+├ ƒ /dashboard
+├ ƒ /dashboard/student/contest/[contestId]/leaderboard
+├ ƒ /dashboard/student/contest/[contestId]/problem/[slug]
+├ ƒ /dashboard/volunteer
+├ ƒ /dashboard/volunteer/contest/[id]/edit
+├ ƒ /dashboard/volunteer/contest/[id]/monitor
+├ ƒ /dashboard/volunteer/contest/[id]/results
+├ ƒ /dashboard/volunteer/contests/past
+├ ○ /forgot-password
+├ ○ /login
+└ ○ /signup
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

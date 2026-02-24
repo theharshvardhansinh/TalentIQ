@@ -95,29 +95,7 @@ export default function ContestDetailPage({ params: paramsPromise }) {
         );
     }
 
-    // --- Guard: Registration Check ---
-    if (status !== 'past' && !contest.isRegistered) {
-        return (
-            <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center text-white p-6">
-                <div className="max-w-md w-full bg-[#111827] border border-[#F43F5E]/20 p-8 rounded-2xl text-center space-y-6 backdrop-blur-sm">
-                    <div className="w-16 h-16 bg-[#F43F5E]/10 rounded-full flex items-center justify-center mx-auto">
-                        <AlertCircle className="w-8 h-8 text-[#F43F5E]" />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#F43F5E] to-[#F59E0B]">Access Denied</h2>
-                        <p className="text-[#94A3B8] mt-2">
-                            You did not register for <span className="text-white font-semibold">{contest.title}</span>.
-                        </p>
-                    </div>
-                    <Link href="/dashboard" className="block w-full">
-                        <button className="w-full py-3 bg-[#1E293B] hover:bg-[#3B82F6]/10 text-white font-medium rounded-xl transition-all border border-[#3B82F6]/10">
-                            Return to Dashboard
-                        </button>
-                    </Link>
-                </div>
-            </div>
-        );
-    }
+
 
     // --- State 1: Upcoming (Secure Lobby) ---
     if (status === 'upcoming') {

@@ -112,15 +112,12 @@ export default function DashboardClient({ initialRole, userId }) {
                     {!isVolunteer && isUpcoming && isRegistered && (
                         <span className="flex-1 py-2.5 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 font-bold rounded-xl text-center text-sm">✓ Registered</span>
                     )}
-                    {isLive && isRegistered && (
+                    {isLive && !isVolunteer && (
                         <Link href={`/contest/${contest._id}`} className="flex-1">
                             <button className="w-full py-2.5 bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] hover:shadow-lg hover:shadow-[#3B82F6]/30 font-bold rounded-xl text-white text-sm flex items-center justify-center gap-2 transition-all">
                                 <ExternalLink className="w-4 h-4" /> Enter Contest
                             </button>
                         </Link>
-                    )}
-                    {isLive && !isRegistered && !isVolunteer && (
-                        <span className="text-xs text-[#F43F5E] font-medium">Not registered for this contest</span>
                     )}
                     {isPast && (
                         <button onClick={() => setShowLeaderboard(contest)} className="flex-1 py-2.5 bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20 hover:bg-[#F59E0B]/20 font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2">
