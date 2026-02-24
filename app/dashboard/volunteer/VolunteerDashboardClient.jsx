@@ -33,7 +33,7 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                             <Zap className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-white tracking-tight leading-none">CodeArena</h1>
+                            <h1 className="text-xl font-bold text-white tracking-tight leading-none">Talent IQ</h1>
                             <span className="text-[10px] font-bold text-[#3B82F6] uppercase tracking-widest">Organizer Panel</span>
                         </div>
                     </div>

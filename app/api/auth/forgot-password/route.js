@@ -37,13 +37,13 @@ export async function POST(req) {
         });
 
         const mailOptions = {
-            from: `"CodeArena Support" <${process.env.EMAIL_USER}>`,
+            from: `"Talent IQ Support" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: 'Password Reset OTP - CodeArena',
+            subject: 'Password Reset OTP - Talent IQ',
             html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
           <h2 style="color: #4f46e5;">Password Reset Request</h2>
-          <p>You requested a password reset for your CodeArena account.</p>
+          <p>You requested a password reset for your Talent IQ account.</p>
           <p>Your OTP code is:</p>
           <h1 style="background: #f3f4f6; padding: 10px 20px; display: inline-block; border-radius: 8px; letter-spacing: 5px;">${otp}</h1>
           <p>This code is valid for 10 minutes.</p>

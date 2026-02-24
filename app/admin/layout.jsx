@@ -45,7 +45,7 @@ export default function AdminLayout({ children }) {
                                 <Sparkles className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-[#94A3B8] bg-clip-text text-transparent">CodeArena</h1>
+                                <h1 className="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-[#94A3B8] bg-clip-text text-transparent">Talent IQ</h1>
                                 <p className="text-xs text-[#94A3B8]/60 font-medium">Administration</p>
                             </div>
                         </div>

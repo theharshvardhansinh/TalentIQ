@@ -54,10 +54,18 @@ export default function LoginPage() {
             <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#3B82F6]/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-[#22D3EE]/8 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="w-full max-w-md bg-[#111827]/80 backdrop-blur-xl border border-[#3B82F6]/10 rounded-2xl shadow-2xl p-8 relative z-10">
+        <div className="w-full max-w-md bg-[#111827]/80 backdrop-blur-xl border border-[#3B82F6]/10 rounded-2xl shadow-2xl p-8 relative z-10">
+
+            {/* ── Full-screen loading overlay ── */}
+            {loading && (
+                <div className="fixed inset-0 z-50 bg-[#0A0E1A]/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+                    <div className="w-14 h-14 rounded-full border-4 border-[#3B82F6]/20 border-t-[#3B82F6] animate-spin" />
+                    <p className="text-[#94A3B8] text-sm font-medium tracking-wide">Signing you in…</p>
+                </div>
+            )}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-                    <p className="text-[#94A3B8]">Sign in to continue to CodeArena</p>
+                    <p className="text-[#94A3B8]">Sign in to continue to Talent IQ</p>
                 </div>
 
                 {error && (

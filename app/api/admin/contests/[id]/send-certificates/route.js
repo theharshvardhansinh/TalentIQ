@@ -110,7 +110,7 @@ export async function POST(req, { params }) {
 
             try {
                 await transporter.sendMail({
-                    from: `"Talent IQ - CodeArena" <${process.env.EMAIL_USER}>`,
+                    from: `"Talent IQ" <${process.env.EMAIL_USER}>`,
                     to: email,
                     subject: `🏆 Congratulations, ${name}! ${rankLabel} in "${contest.title}"`,
                     html: buildEmailBody(name, rankLabel, contest.title),

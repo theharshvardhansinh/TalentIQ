@@ -76,7 +76,7 @@ export default function AdminDashboard() {
             const csvRows = [];
             
             // Header
-            csvRows.push(['CodeArena Admin Report', new Date().toLocaleString()]);
+            csvRows.push(['Talent IQ Admin Report', new Date().toLocaleString()]);
             csvRows.push([]);
             
             // Summary Stats

@@ -155,109 +155,14 @@ export default function ContestDetailPage({ params: paramsPromise }) {
         );
     }
 
-    // --- State 2: Past Contest (Results View) ---
+    // --- State 2: Past Contest → redirect to dashboard ---
     if (status === 'past') {
-        const percentage = contest.totalProblems > 0
-            ? Math.round((contest.userScore / contest.totalProblems) * 100)
-            : 0;
-
+        if (typeof window !== 'undefined') {
+            window.location.replace('/dashboard');
+        }
         return (
-            <div className="min-h-screen bg-[#0A0E1A] text-white p-6">
-                {/* Header Navigation */}
-                <div className="max-w-6xl mx-auto mb-6">
-                    <Link href="/dashboard" className="inline-flex items-center justify-center p-2 rounded-lg bg-[#111827] hover:bg-[#1E293B] text-white transition-colors border border-[#3B82F6]/10">
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                </div>
-
-                {/* Hero Section */}
-                <div className="max-w-4xl mx-auto text-center space-y-6 py-2">
-                    <div>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1E293B] border border-[#3B82F6]/10 text-[#94A3B8] rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                            <CheckSquare className="w-3 h-3" /> Contest Finished
-                        </span>
-                        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                            {contest.title}
-                        </h1>
-                        <div className="flex items-center justify-center gap-2 text-[#94A3B8]/60 text-sm italic">
-                            <Quote className="w-4 h-4 text-[#475569] rotate-180" />
-                            {randomQuote}
-                            <Quote className="w-4 h-4 text-[#475569]" />
-                        </div>
-                    </div>
-
-                    <div className="flex justify-center">
-                        <Link href={`/dashboard/student/contest/${contest._id}/leaderboard`}>
-                            <button className="px-8 py-3 bg-[#F59E0B] hover:bg-[#D97706] text-[#0A0E1A] font-bold rounded-lg shadow-lg shadow-[#F59E0B]/20 transition-all transform hover:scale-105 flex items-center gap-2">
-                                <Trophy className="w-5 h-5" /> View Leaderboard
-                            </button>
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Performance Summary */}
-                <div className="max-w-4xl mx-auto mb-12">
-                    <div className="bg-[#111827] border border-[#3B82F6]/10 rounded-2xl p-6 md:p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-32 bg-[#22D3EE]/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
-                        <div className="relative z-10">
-                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <Star className="w-5 h-5 text-[#F59E0B]" /> Performance Summary
-                            </h2>
-                            <div className="flex flex-col md:flex-row items-end justify-between gap-4 mb-3">
-                                <div className="text-[#94A3B8]">
-                                    You solved <span className="text-white font-bold text-2xl">{contest.userScore}</span> out of <span className="text-white font-bold text-2xl">{contest.totalProblems}</span> problems.
-                                </div>
-                                <div className="text-2xl font-bold text-[#22D3EE]">{percentage}%</div>
-                            </div>
-                            <div className="w-full h-4 bg-[#0A0E1A] rounded-full overflow-hidden border border-[#3B82F6]/5">
-                                <div
-                                    className="h-full bg-gradient-to-r from-[#22D3EE] to-[#3B82F6] transition-all duration-1000 ease-out"
-                                    style={{ width: `${percentage}%` }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Problem List (Practice Mode) */}
-                <div className="max-w-4xl mx-auto space-y-4">
-                    <h2 className="text-xl font-bold text-[#94A3B8]">Practice Problems</h2>
-                    <div className="space-y-3">
-                        {contest.problems.map((problem, index) => (
-                            <div key={problem._id} className="group flex items-center justify-between bg-[#111827] border border-[#3B82F6]/8 p-5 rounded-xl hover:bg-[#1E293B] transition-colors">
-                                <div className="flex items-center gap-4">
-                                    <div className="mt-0.5">
-                                        {problem.userStatus === 'solved' ? (
-                                            <CheckCircle2 className="w-5 h-5 text-[#10B981]" />
-                                        ) : (
-                                            <Circle className="w-5 h-5 text-[#475569]" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-white group-hover:text-[#3B82F6] transition-colors">
-                                            {index + 1}. {problem.title}
-                                        </h3>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${getDifficultyColor(problem.difficulty)}`}>
-                                                {problem.difficulty}
-                                            </span>
-                                            {problem.userStatus === 'solved' && (
-                                                <span className="text-xs text-[#10B981] font-medium px-2 py-0.5 bg-[#10B981]/10 rounded">Solved</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <Link href={`/dashboard/student/contest/${contest._id}/problem/${problem.slug}`}>
-                                    <button className="px-4 py-2 bg-[#1E293B] hover:bg-[#3B82F6]/10 text-white text-sm font-medium rounded-lg transition-colors border border-[#3B82F6]/10">
-                                        Practice
-                                    </button>
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[#3B82F6] animate-spin" />
             </div>
         );
     }
