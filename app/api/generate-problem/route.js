@@ -54,7 +54,7 @@ export async function POST(req) {
 
         let finalProblemData = null;
 
-        if (platform === 'codeforces') {
+        if (platform === 'codeforces' && !imageUrl) {
             const { contestId, index } = body;
             if (!contestId || !index) return NextResponse.json({ error: "Contest ID and Index required" }, { status: 400 });
 
@@ -98,9 +98,9 @@ export async function POST(req) {
                 
                 Ensure there are exactly 2 public and 3 hidden test cases.
                 For "starterCode":
-                1. Class-based structure (e.g., class Solution) where applicable.
-                2. Empty method body (do NOT solve).
-                3. Include main/driver code to parse input and print output.
+                1. Provide standard competitive programming boilerplate with a simple main function (e.g., int main() in C++). Do NOT use a class-based structure like "class Solution".
+                2. Leave the core logic empty (do NOT provide the solution).
+                3. Include code to parse input from standard input and print output to standard output based on format.
                 
                 Return ONLY the JSON.
             `;
@@ -160,7 +160,7 @@ export async function POST(req) {
                 }
                 
                 Ensure there are exactly 2 public and 3 hidden test cases.
-                For "starterCode", create a class-based solution with an empty method body.
+                For "starterCode", create standard competitive programming boilerplate with a simple main function (e.g., int main() in C++) reading from std input. Do NOT use a class-based "Solution" approach. Leave the core logic empty.
                 
                 Return ONLY the JSON.
             `;
@@ -226,19 +226,18 @@ export async function POST(req) {
                         { "input": "hidden3", "output": "hidden_output3", "isPublic": false }
                     ],
                     "starterCode": {
-                        "cpp": "// Generated C++ starter code with main function and Solution class",
-                        "java": "// Generated Java starter code with main class and Solution class",
-                        "python": "# Generated Python starter code with Solution class and driver code",
-                        "javascript": "// Generated JavaScript starter code with Solution class and driver code"
+                        "cpp": "// Generated C++ starter code with simple main function boilerplate",
+                        "java": "// Generated Java starter code with simple main class boilerplate",
+                        "python": "# Generated Python starter code reading from standard input",
+                        "javascript": "// Generated JavaScript starter code reading from standard input"
                     }
                 }
                 Ensure there are exactly 2 public and 3 hidden test cases as requested.
                 
                 For "starterCode":
-                1. Provide a Class-based structure (e.g., class Solution).
-                2. Define the correct method signature based on the problem (e.g., int solve(int n)).
-                3. CRITICAL: DO NOT IMPLEMENT THE SOLUTION LOGIC. The method body MUST be empty or return a default/dummy value (e.g. return 0; or return "";).
-                4. Include a main method/driver code that reads Input according to inputFormat, calls the Solution method, and prints the Output.
+                1. Provide standard competitive programming boilerplate with a simple main function (e.g., int main() in C++). Do NOT use a class-based approach like "class Solution".
+                2. CRITICAL: DO NOT IMPLEMENT THE SOLUTION LOGIC. The logic section MUST be empty.
+                3. Include code that reads Input from standard input according to inputFormat and prints the Output to standard output.
                 
                 Return ONLY the JSON. No markdown, no extra text.
             `;

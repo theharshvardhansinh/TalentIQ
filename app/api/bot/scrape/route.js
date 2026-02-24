@@ -238,10 +238,10 @@ export async function POST(req) {
                     Please analyze the text and extract/generate the following in valid JSON format:
                     {
                         "title": "Extract exact title",
-                        "description": "Clean, readable problem statement summary (fix math symbols, remove duplicates)",
-                        "constraints": "Extract constraints",
-                        "inputFormat": "Extract input format. CRITICAL: Remove all LaTeX formatting (e.g., change $T$ to T, $10^5$ to 10^5). Make it clean and readable plain text.",
-                        "outputFormat": "Extract output format. CRITICAL: Remove all LaTeX formatting. Use clean plain text.",
+                        "description": "Clean, readable problem statement summary. CRITICAL: MUST use escaped \\\\n for newlines, NO literal newlines in JSON strings.",
+                        "constraints": "Extract constraints. MUST use escaped \\\\n for newlines. Example: 1 <= T <= 10\\\\n1 <= N <= 10^5",
+                        "inputFormat": "Extract input format. CRITICAL: Remove all LaTeX formatting. MUST use escaped \\\\n for newlines, NO literal newlines.",
+                        "outputFormat": "Extract output format. CRITICAL: Remove all LaTeX formatting. MUST use escaped \\\\n for newlines, NO literal newlines.",
                         "tags": ["Tag1", "Tag2"],
                         "difficulty": "Easy/Medium/Hard",
                         "generatedPublicCases": [
@@ -265,9 +265,9 @@ export async function POST(req) {
                     }
 
                     For "starterCode":
-                    1. Class-based structure (class Solution).
-                    2. Empty method body (DO NOT SOLVE).
-                    3. Include driver code (main function) to handle input/output.
+                    1. Provide standard competitive programming boilerplate with a simple main function (e.g., int main() in C++). Do NOT use a class-based structure like "class Solution".
+                    2. Leave the core logic empty (DO NOT SOLVE).
+                    3. Include code to parse input from standard input and print output to standard output based on format.
 
                     Return ONLY the JSON.
                     `;
@@ -279,7 +279,35 @@ export async function POST(req) {
                     // Simple JSON extraction
                     const jsonMatch = text.match(/\{[\s\S]*\}/);
                     if (jsonMatch) {
-                        const aiData = JSON.parse(jsonMatch[0]);
+                        let jsonStr = jsonMatch[0];
+
+                        let cleanedStr = '';
+                        let isInsideString = false;
+                        for (let i = 0; i < jsonStr.length; i++) {
+                            const char = jsonStr[i];
+                            // Toggle string state when encouterning an unescaped double quote
+                            if (char === '"' && (i === 0 || jsonStr[i - 1] !== '\\')) {
+                                isInsideString = !isInsideString;
+                                cleanedStr += char;
+                            } else if (char === '\n') {
+                                // Only escape newlines if we are inside a JSON string value
+                                if (isInsideString) cleanedStr += '\\n';
+                                else cleanedStr += char;
+                            } else if (char === '\r') {
+                                if (isInsideString) cleanedStr += '\\r';
+                                else cleanedStr += char;
+                            } else if (char === '\t') {
+                                if (isInsideString) cleanedStr += '\\t';
+                                else cleanedStr += char;
+                            } else if (char < ' ' && isInsideString) {
+                                // Ignore other problematic unescaped control characters inside strings
+                            } else {
+                                cleanedStr += char;
+                            }
+                        }
+
+                        // Parse the cleaned JSON securely
+                        const aiData = JSON.parse(cleanedStr);
 
                         // Merge AI data with scraped data
                         if (!data.title && aiData.title) data.title = aiData.title;
