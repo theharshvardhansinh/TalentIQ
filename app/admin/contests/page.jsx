@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus, Clock, FileQuestion, Calendar as CalendarIcon, ArrowLeft, MoreVertical, Loader2, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Clock, FileQuestion, Calendar as CalendarIcon, ArrowLeft, MoreVertical, Loader2, Trash2, AlertTriangle, BarChart2 } from 'lucide-react';
 import { toast } from 'sonner';
 import CreateContestForm from '@/app/components/CreateContestForm';
 import AddProblemForm from '@/app/components/AddProblemForm';
@@ -18,6 +18,7 @@ function ContestsPageContent() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [contestToDelete, setContestToDelete] = useState(null);
     const [adminPassword, setAdminPassword] = useState('');
+    const [showLiveData, setShowLiveData] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Derived state from URL
@@ -142,11 +143,49 @@ function ContestsPageContent() {
                                 </span>
                             </div>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-sm font-bold border ${getStatusColor(selectedContest.status)}`}>
-                            {selectedContest.status}
-                        </span>
+                        <div className="flex flex-col items-end gap-3">
+                            <span className={`px-3 py-1 rounded-full text-sm font-bold border ${getStatusColor(selectedContest.status)}`}>
+                                {selectedContest.status}
+                            </span>
+                            {/* Live Data Toggle Button */}
+                            <button
+                                onClick={() => setShowLiveData(prev => !prev)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                                    showLiveData
+                                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                                        : 'bg-[#1E293B] hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-400 border-white/10 hover:border-emerald-500/30'
+                                }`}
+                            >
+                                <BarChart2 className="w-4 h-4" />
+                                {showLiveData ? 'Hide Live Data' : 'View Live Data'}
+                                {!showLiveData && (
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                                    </span>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Live Leaderboard (shown while contest is ongoing) */}
+                {showLiveData && (
+                    <div className="mb-8 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="relative flex h-2.5 w-2.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
+                            </span>
+                            <h2 className="text-lg font-bold text-emerald-400">Live Contest Data</h2>
+                            <span className="text-xs text-emerald-500/60 ml-1">— real-time submissions while the contest runs</span>
+                        </div>
+                        <ContestLeaderboard
+                            contest={selectedContest}
+                            onBack={() => setShowLiveData(false)}
+                        />
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Add Problem */}
@@ -154,7 +193,7 @@ function ContestsPageContent() {
                         <AddProblemForm contestId={selectedContest._id} onSuccess={handleProblemAdded} />
                     </div>
 
-                    {/* Right Column: Existing Problems (Placeholder for now) */}
+                    {/* Right Column: Existing Problems */}
                     <div className="bg-white/5 border border-white/10 rounded-xl p-6 h-fit">
                         <h3 className="text-lg font-bold text-white mb-4">Contest Problems</h3>
                         <p className="text-sm text-slate-500 mb-4">
