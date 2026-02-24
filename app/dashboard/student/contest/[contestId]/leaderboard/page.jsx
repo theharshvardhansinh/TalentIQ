@@ -17,9 +17,6 @@ export default function LeaderboardPage({ params: paramsPromise, showBackButton 
 
     useEffect(() => {
         fetchLeaderboard();
-        // Poll every 30 seconds if live?
-        const interval = setInterval(fetchLeaderboard, 30000);
-        return () => clearInterval(interval);
     }, []);
 
     const fetchLeaderboard = async () => {
