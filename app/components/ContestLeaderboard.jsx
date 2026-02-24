@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import {
     Trophy, Loader2, ArrowLeft, Search, Mail, CheckCircle2,
     AlertCircle, Users, BookOpen, BarChart2, Star, Download,
@@ -92,7 +92,7 @@ export default function ContestLeaderboard({ contest, onBack }) {
         if (!meta) return;
         const problemHeaders = (meta.problems || []).map(p => `"${p.title}"`).join(',');
         const rows = [
-            ['Rank', 'Name', 'Email', 'Score (%)', 'Problems Solved', 'Total Attempts', ...( meta.problems || []).map(p => p.title)],
+            ['Rank', 'Name', 'Email', 'Score (%)', 'Problems Solved', 'Total Attempts', ...(meta.problems || []).map(p => p.title)],
         ];
         processedData.forEach((s, i) => {
             const probCols = (meta.problems || []).map(p =>
@@ -104,7 +104,7 @@ export default function ContestLeaderboard({ contest, onBack }) {
         const uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
         const a = document.createElement('a');
         a.href = uri;
-        a.download = `${contest.title?.replace(/\s+/g,'_')}_results.csv`;
+        a.download = `${contest.title?.replace(/\s+/g, '_')}_results.csv`;
         a.click();
     };
 
@@ -288,9 +288,8 @@ export default function ContestLeaderboard({ contest, onBack }) {
                                     const isExpanded = expandedRow === student._id;
                                     const hasActivity = student.totalAttempts > 0;
                                     return (
-                                        <>
+                                        <Fragment key={student._id}>
                                             <tr
-                                                key={student._id}
                                                 className={`group transition-colors cursor-pointer ${isExpanded ? 'bg-[#1a2332]' : 'hover:bg-[#1E293B]'}`}
                                                 onClick={() => setExpandedRow(isExpanded ? null : student._id)}
                                             >
@@ -314,13 +313,12 @@ export default function ContestLeaderboard({ contest, onBack }) {
                                                 {/* Solved count */}
                                                 <td className="p-4">
                                                     <div className="flex items-center gap-2">
-                                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-sm border ${
-                                                            student.solvedCount === 0
-                                                                ? 'bg-[#1E293B] text-[#475569] border-white/5'
-                                                                : student.solvedCount === meta?.totalProblems
-                                                                    ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20'
-                                                                    : 'bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/20'
-                                                        }`}>
+                                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-sm border ${student.solvedCount === 0
+                                                            ? 'bg-[#1E293B] text-[#475569] border-white/5'
+                                                            : student.solvedCount === meta?.totalProblems
+                                                                ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20'
+                                                                : 'bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/20'
+                                                            }`}>
                                                             <Trophy className="w-3 h-3" />
                                                             {student.solvedCount}
                                                             {meta?.totalProblems > 0 && (
@@ -345,11 +343,10 @@ export default function ContestLeaderboard({ contest, onBack }) {
                                                                     <span
                                                                         key={pi}
                                                                         title={prob.title}
-                                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold border ${
-                                                                            solved
-                                                                                ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20'
-                                                                                : 'bg-[#1E293B] text-[#475569] border-white/5'
-                                                                        }`}
+                                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold border ${solved
+                                                                            ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20'
+                                                                            : 'bg-[#1E293B] text-[#475569] border-white/5'
+                                                                            }`}
                                                                     >
                                                                         {solved
                                                                             ? <CheckCircle2 className="w-3 h-3" />
@@ -378,18 +375,16 @@ export default function ContestLeaderboard({ contest, onBack }) {
                                                 {/* Score */}
                                                 <td className="p-4 text-right">
                                                     <div className="flex flex-col items-end gap-1">
-                                                        <span className={`text-lg font-black ${
-                                                            student.score >= 80 ? 'text-[#10B981]' :
+                                                        <span className={`text-lg font-black ${student.score >= 80 ? 'text-[#10B981]' :
                                                             student.score >= 50 ? 'text-[#3B82F6]' :
-                                                            student.score > 0 ? 'text-[#F59E0B]' : 'text-[#475569]'
-                                                        }`}>{student.score}%</span>
+                                                                student.score > 0 ? 'text-[#F59E0B]' : 'text-[#475569]'
+                                                            }`}>{student.score}%</span>
                                                         <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden">
                                                             <div
-                                                                className={`h-full rounded-full transition-all ${
-                                                                    student.score >= 80 ? 'bg-[#10B981]' :
+                                                                className={`h-full rounded-full transition-all ${student.score >= 80 ? 'bg-[#10B981]' :
                                                                     student.score >= 50 ? 'bg-[#3B82F6]' :
-                                                                    student.score > 0 ? 'bg-[#F59E0B]' : 'bg-[#1E293B]'
-                                                                }`}
+                                                                        student.score > 0 ? 'bg-[#F59E0B]' : 'bg-[#1E293B]'
+                                                                    }`}
                                                                 style={{ width: `${student.score}%` }}
                                                             />
                                                         </div>
@@ -437,7 +432,7 @@ export default function ContestLeaderboard({ contest, onBack }) {
                                                     </td>
                                                 </tr>
                                             )}
-                                        </>
+                                        </Fragment>
                                     );
                                 })}
 

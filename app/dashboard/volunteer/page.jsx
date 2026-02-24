@@ -5,8 +5,8 @@ import dbConnect from '@/lib/db';
 import Contest from '@/models/Contest';
 import VolunteerDashboardClient from './VolunteerDashboardClient';
 import { serialize } from '@/lib/utils';
-
 export const dynamic = 'force-dynamic';
+
 
 export default async function VolunteerDashboard() {
     const session = await getSession();

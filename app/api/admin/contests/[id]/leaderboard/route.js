@@ -4,13 +4,14 @@ import dbConnect from '@/lib/db';
 import Submission from '@/models/Submission';
 import User from '@/models/User';
 import Contest from '@/models/Contest';
+import Problem from '@/models/Problem'; // Import Problem model for population
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 
 export async function GET(req, { params }) {
     try {
         const session = await getSession();
-        if (!session || session.user.role !== 'admin') {
+        if (!session || (session.user.role !== 'admin' && session.user.role !== 'volunteer')) {
             return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
         }
 

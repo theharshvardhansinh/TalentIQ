@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -39,7 +38,7 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                         </div>
                     </div>
                     <div className="flex items-center gap-6">
-                        <button 
+                        <button
                             onClick={() => setShowCreateModal(true)}
                             className="hidden md:flex items-center gap-2 px-4 py-2 bg-[#111827] hover:bg-[#1E293B] border border-[#3B82F6]/10 rounded-lg text-sm font-medium transition-all group"
                         >
@@ -65,7 +64,7 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                         <h2 className="text-3xl font-bold text-white mb-2">Contest Control Center</h2>
                         <p className="text-[#94A3B8]">Monitor active events, manage registrations, and review past performance.</p>
                     </div>
-                    <button 
+                    <button
                         onClick={() => setShowCreateModal(true)}
                         className="md:hidden w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#3B82F6] text-white font-bold rounded-xl"
                     >
@@ -239,7 +238,7 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                         ) : (
                             <div className="text-center py-12 bg-[#111827] rounded-2xl border border-[#3B82F6]/10 border-dashed">
                                 <p className="text-[#475569]">No upcoming contests scheduled.</p>
-                                <button 
+                                <button
                                     onClick={() => setShowCreateModal(true)}
                                     className="text-[#3B82F6] hover:text-[#60A5FA] text-sm mt-2 inline-block font-medium"
                                 >
@@ -261,7 +260,7 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                                 View All &rarr;
                             </Link>
                         </div>
-                        
+
                         {pastContests.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {pastContests.slice(0, 3).map(contest => (
@@ -273,7 +272,7 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                                         <div className="flex gap-3">
                                             <Link href={`/dashboard/volunteer/contest/${contest._id}/results`} className="w-full">
                                                 <button className="w-full py-2 border border-[#3B82F6]/10 hover:border-[#3B82F6]/20 text-[#94A3B8]/60 hover:text-[#94A3B8] text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2">
-                                                    <BarChart2 className="w-4 h-4" /> View Results
+                                                    <BarChart2 className="w-4 h-4" /> View Leaderboard
                                                 </button>
                                             </Link>
                                         </div>
