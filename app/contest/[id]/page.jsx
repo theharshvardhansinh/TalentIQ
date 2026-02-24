@@ -288,12 +288,7 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                             </ul>
                         </div>
 
-                        {/* ── Leaderboard link ── */}
-                        <Link href={`/dashboard/student/contest/${contest._id}/leaderboard`}>
-                            <button className="w-full py-2.5 text-sm font-medium text-[#94A3B8] hover:text-white border border-white/10 hover:border-[#3B82F6]/30 rounded-xl transition-all hover:bg-[#3B82F6]/5 flex items-center justify-center gap-2">
-                                <Trophy className="w-4 h-4 text-[#F59E0B]" /> View Leaderboard
-                            </button>
-                        </Link>
+
                     </div>
                 </div>
             </main>
