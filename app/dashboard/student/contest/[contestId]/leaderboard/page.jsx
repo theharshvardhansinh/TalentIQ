@@ -125,27 +125,36 @@ export default function LeaderboardPage({ params: paramsPromise, showBackButton 
                                         </td>
                                     </tr>
                                 ) : (
-                                    leaderboard.map((entry) => (
-                                        <tr key={entry.user._id} className={`hover:bg-white/5 transition-colors ${entry.rank <= 3 ? 'bg-gradient-to-r from-yellow-500/5 to-transparent' : ''
-                                            }`}>
+                                    leaderboard.map((entry, idx) => {
+                                        // API returns flat: { _id, name, email, score, solvedCount, lastSolvedAt }
+                                        // Normalise so both shapes work
+                                        const displayName  = entry.name  ?? entry.user?.name  ?? 'Unknown';
+                                        const displayEmail = entry.email ?? entry.user?.email ?? '';
+                                        const displayId    = entry._id   ?? entry.user?._id   ?? idx;
+                                        const rank         = entry.rank  ?? (idx + 1);
+                                        const finishTime   = entry.finishTime ?? entry.lastSolvedAt ?? null;
+                                        const solvedCount  = entry.score ?? entry.solvedCount ?? 0;
+
+                                        return (
+                                        <tr key={displayId} className={`hover:bg-white/5 transition-colors ${rank <= 3 ? 'bg-gradient-to-r from-yellow-500/5 to-transparent' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5">
-                                                    {getRankIcon(entry.rank)}
+                                                    {getRankIcon(rank)}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="font-medium text-white">{entry.user.name}</div>
-                                                <div className="text-xs text-slate-500 font-mono">{maskEmail(entry.user.email)}</div>
+                                                <div className="font-medium text-white">{displayName}</div>
+                                                <div className="text-xs text-slate-500 font-mono">{maskEmail(displayEmail)}</div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-sm font-bold">
-                                                    {entry.score} <span className="text-emerald-500/50 text-xs font-normal">Solved</span>
+                                                    {solvedCount} <span className="text-emerald-500/50 text-xs font-normal">Solved</span>
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right tabular-nums text-slate-300">
                                                 <div className="flex items-center justify-end gap-2 text-sm">
                                                     <Clock className="w-3 h-3 text-slate-500" />
-                                                    {formatTime(entry.finishTime)}
+                                                    {formatTime(finishTime)}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
@@ -159,7 +168,8 @@ export default function LeaderboardPage({ params: paramsPromise, showBackButton 
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -176,9 +186,9 @@ export default function LeaderboardPage({ params: paramsPromise, showBackButton 
                             <div>
                                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                                     <Code2 className="w-5 h-5 text-indigo-400" />
-                                    {selectedUser.user.name}'s Solutions
+                                    {(selectedUser.name ?? selectedUser.user?.name ?? 'Unknown')}'s Solutions
                                 </h2>
-                                <p className="text-xs text-slate-500">{maskEmail(selectedUser.user.email)} • Rank #{selectedUser.rank}</p>
+                                <p className="text-xs text-slate-500">{maskEmail(selectedUser.email ?? selectedUser.user?.email)} • Rank #{selectedUser.rank ?? '?'}</p>
                             </div>
                             <button onClick={() => setSelectedUser(null)} className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
                                 <X className="w-6 h-6" />
