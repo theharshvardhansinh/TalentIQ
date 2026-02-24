@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Users, Calendar, Trophy, Activity, TrendingUp, Clock, Download, Loader2 } from 'lucide-react';
+import { Users, Calendar, Trophy, Activity, TrendingUp, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -10,7 +10,7 @@ export default function AdminDashboard() {
     const [topSolvers, setTopSolvers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState('Last 30 Days');
-    const [generatingReport, setGeneratingReport] = useState(false);
+
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -69,51 +69,7 @@ export default function AdminDashboard() {
         // fetchStats(nextRange); 
     };
 
-    const handleCreateReport = () => {
-        setGeneratingReport(true);
-        try {
-            // Generate CSV content
-            const csvRows = [];
-            
-            // Header
-            csvRows.push(['Talent IQ Admin Report', new Date().toLocaleString()]);
-            csvRows.push([]);
-            
-            // Summary Stats
-            csvRows.push(['Summary Statistics']);
-            csvRows.push(['Metric', 'Value']);
-            cards.forEach(c => csvRows.push([c.title, c.value]));
-            csvRows.push([]);
 
-            // Top Solvers
-            csvRows.push(['Top Solvers']);
-            csvRows.push(['Rank', 'Name', 'Email', 'Problems Solved']);
-            topSolvers.forEach((s, i) => csvRows.push([i + 1, s.name, s.email, s.solvedCount]));
-            csvRows.push([]);
-
-
-
-            // Convert to CSV string
-            const csvContent = "data:text/csv;charset=utf-8," 
-                + csvRows.map(e => e.join(",")).join("\n");
-
-            // Download
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `admin_report_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            toast.success("Report generated successfully");
-        } catch (error) {
-            console.error("Report generation failed", error);
-            toast.error("Failed to generate report");
-        } finally {
-            setGeneratingReport(false);
-        }
-    };
 
     if (loading) {
         return (
@@ -130,27 +86,13 @@ export default function AdminDashboard() {
                     <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard Overview</h1>
                     <p className="text-[#94A3B8] mt-2">Welcome back, Admin. Here's what's happening today.</p>
                 </div>
-                <div className="flex gap-3">
-                    <button 
+                <button 
                         onClick={handleTimeRangeChange}
                         className="px-4 py-2 bg-[#111827] hover:bg-[#1E293B] text-white rounded-lg text-sm font-medium transition-colors border border-[#3B82F6]/10 flex items-center gap-2 min-w-[140px] justify-center"
                     >
                         <Clock className="w-4 h-4 text-[#94A3B8]" />
                         {timeRange}
                     </button>
-                    <button 
-                        onClick={handleCreateReport}
-                        disabled={generatingReport}
-                        className="px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-70 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-[#3B82F6]/20 flex items-center gap-2 min-w-[150px] justify-center"
-                    >
-                        {generatingReport ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Download className="w-4 h-4" />
-                        )}
-                        {generatingReport ? 'Generating...' : 'Create Report'}
-                    </button>
-                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
