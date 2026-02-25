@@ -12,7 +12,7 @@ async function scrapeCodeChef(url) {
                 browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
             });
         } else {
-            const browserPath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+            const browserPath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
             browser = await puppeteer.launch({
                 executablePath: browserPath,
                 headless: 'new',
@@ -257,17 +257,27 @@ export async function POST(req) {
                             { "input": "...", "output": "...", "isPublic": false }
                         ],
                         "starterCode": {
-                            "cpp": "// Generated C++ starter...",
-                            "java": "// Generated Java starter...",
-                            "python": "# Generated Python starter...",
-                            "javascript": "// Generated JS starter..."
+                            "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
+                            "java": "class Solution {\\n    // ...\\n}",
+                            "python": "class Solution:\\n    def solve(self, ...):",
+                            "javascript": "var solve = function(...) {"
+                        },
+                        "driverCode": {
+                            "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
+                            "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
+                            "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
+                            "javascript": "const fs = require('fs');\\n\\n{{USER_CODE}}\\n\\nfunction main() { /* parse stdin, call solve, print */ }\\nmain();"
                         }
                     }
 
                     For "starterCode":
-                    1. Provide standard competitive programming boilerplate with a simple main function (e.g., int main() in C++). Do NOT use a class-based structure like "class Solution".
-                    2. Leave the core logic empty (DO NOT SOLVE).
-                    3. Include code to parse input from standard input and print output to standard output based on format.
+                    1. Provide a LeetCode-style class or function signature (e.g., class Solution) that ONLY takes parsed inputs as arguments.
+                    2. DO NOT include any standard input/output parsing (like cin, Scanner, input()) in the starterCode.
+                    
+                    For "driverCode":
+                    1. Write the hidden execution code that parses standard input, instantiates/calls the function/class defined in starterCode, and prints to standard output.
+                    2. The driverCode MUST include the exact literal string "{{USER_CODE}}" precisely where the user's starterCode should be injected.
+                    3. Make sure the driverCode accurately parses the inputs based on the inputFormat and prints the result exactly as outputFormat demands.
 
                     Return ONLY the JSON.
                     `;
@@ -353,6 +363,7 @@ export async function POST(req) {
                         if (aiData.tags) data.tags = aiData.tags;
                         if (aiData.difficulty) data.difficulty = aiData.difficulty;
                         if (aiData.starterCode) data.starterCode = aiData.starterCode;
+                        if (aiData.driverCode) data.driverCode = aiData.driverCode;
                     }
                 } catch (aiError) {
                     console.warn("AI Enhancement failed:", aiError);

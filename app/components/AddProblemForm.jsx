@@ -1,6 +1,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Loader2, Plus, Trash2, Code2, Save, Sparkles, Camera, Eye, Edit2, Upload } from 'lucide-react';
 
 export default function AddProblemForm({ contestId, onSuccess, initialData = null, problemId = null }) {
@@ -46,7 +47,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
         if (platform === 'codeforces') {
             if (!cfContestId.trim() || !cfIndex.trim()) {
-                alert("Please enter Contest ID and Index");
+                toast.error("Please enter Contest ID and Index");
                 return;
             }
             problemUrl = `https://codeforces.com/problemset/problem/${cfContestId}/${cfIndex}`;
@@ -55,7 +56,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
         } else if (platform === 'leetcode') {
             if (!leetcodeTitle.trim()) {
-                alert("Please enter LeetCode Title or URL");
+                toast.error("Please enter LeetCode Title or URL");
                 return;
             }
             const inputVal = leetcodeTitle.trim();
@@ -133,13 +134,13 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 }
 
                 setDescTab('preview'); // Switch to preview to show the image immediately
-                alert("Screenshot captured and analyzed by AI!");
+                toast.success("Screenshot captured and analyzed by AI!");
             } else {
-                alert(data.error || "Failed to capture screenshot.");
+                toast.error(data.error || "Failed to capture screenshot.");
             }
         } catch (error) {
             console.error("Bot Error:", error);
-            alert("Failed to connect to bot API.");
+            toast.error("Failed to connect to bot API.");
         } finally {
             setBotLoading(false);
         }
@@ -147,7 +148,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
     const handleScrape = async () => {
         if (!codechefUrl.trim()) {
-            alert("Please enter a CodeChef URL");
+            toast.error("Please enter a CodeChef URL");
             return;
         }
 
@@ -188,13 +189,13 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     })));
                 }
 
-                alert("Problem scraped successfully! Please review the details.");
+                toast.success("Problem scraped successfully! Please review the details.");
             } else {
-                alert(data.error || "Failed to scrape problem.");
+                toast.error(data.error || "Failed to scrape problem.");
             }
         } catch (error) {
             console.error("Scrape Error:", error);
-            alert("Failed to connect to scraping API.");
+            toast.error("Failed to connect to scraping API.");
         } finally {
             setBotLoading(false);
         }
@@ -249,7 +250,8 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                             tags: Array.isArray(extractedData.tags) ? extractedData.tags.join(', ') : '',
                             inputFormat: extractedData.inputFormat || '',
                             outputFormat: extractedData.outputFormat || '',
-                            starterCode: extractedData.starterCode || { cpp: '', java: '', python: '', javascript: '' }
+                            starterCode: extractedData.starterCode || { cpp: '', java: '', python: '', javascript: '' },
+                            driverCode: extractedData.driverCode || { cpp: '', java: '', python: '', javascript: '' }
                         }));
 
                         if (extractedData.testCases) {
@@ -257,13 +259,13 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                         }
 
                         setDescTab('preview');
-                        alert("Screenshot uploaded and analyzed by AI!");
+                        toast.success("Screenshot uploaded and analyzed by AI!");
                     } else {
-                        alert(data.error || "Failed to upload screenshot.");
+                        toast.error(data.error || "Failed to upload screenshot.");
                     }
                 } catch (apiErr) {
                     console.error("API Error:", apiErr);
-                    alert("Failed to process image.");
+                    toast.error("Failed to process image.");
                 } finally {
                     setBotLoading(false);
                     e.target.value = null; // reset file input
@@ -271,7 +273,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
             };
         } catch (error) {
             console.error("Upload Error:", error);
-            alert("Failed to read file.");
+            toast.error("Failed to read file.");
             setBotLoading(false);
         }
     };
@@ -316,11 +318,11 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     setTestCases(problem.testCases);
                 }
             } else {
-                alert(data.error || 'Failed to generate problem');
+                toast.error(data.error || 'Failed to generate problem');
             }
         } catch (error) {
             console.error(error);
-            alert('Something went wrong while generating the problem');
+            toast.error('Something went wrong while generating the problem');
         } finally {
             setGenerating(false);
         }
@@ -391,7 +393,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
             if (data.success) {
                 if (onSuccess) onSuccess();
-                alert(isEditMode ? 'Problem updated successfully!' : 'Problem added successfully!');
+                toast.success(isEditMode ? 'Problem updated successfully!' : 'Problem added successfully!');
 
                 if (!isEditMode) {
                     setFormData({
@@ -408,11 +410,11 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     setTestCases([{ input: '', output: '', isPublic: false }]);
                 }
             } else {
-                alert(data.error || 'Failed to save problem');
+                toast.error(data.error || 'Failed to save problem');
             }
         } catch (error) {
             console.error(error);
-            alert('Something went wrong');
+            toast.error('Something went wrong');
         } finally {
             setLoading(false);
         }
@@ -458,7 +460,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     AI Problem Generator
                 </label>
 
-                <div className="flex gap-4 mb-3">
+                <div className="flex flex-col md:flex-row flex-wrap gap-4 mb-3">
                     <select
                         value={platform}
                         onChange={(e) => setPlatform(e.target.value)}
@@ -471,7 +473,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
                     </select>
 
-                    <div className="flex-1 flex gap-2">
+                    <div className="flex-1 flex flex-wrap gap-2 items-center">
                         {platform === 'custom' && (
                             <input
                                 type="text"
