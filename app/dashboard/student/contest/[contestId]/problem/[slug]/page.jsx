@@ -401,11 +401,11 @@ export default function ProblemPage({ params: paramsPromise }) {
                                                 const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
                                                 if (imageMatch) {
                                                     return (
-                                                        <div key={index} className="my-4 rounded-lg overflow-hidden border border-white/10">
+                                                        <div key={index} className="my-6 rounded-xl overflow-hidden shadow-xl shadow-black/50 border border-white/10 bg-white">
                                                             <img
                                                                 src={imageMatch[2]}
                                                                 alt={imageMatch[1] || "Problem Image"}
-                                                                className="w-full object-contain max-h-[500px] bg-black"
+                                                                className="w-full object-contain"
                                                             />
                                                         </div>
                                                     );
@@ -415,29 +415,7 @@ export default function ProblemPage({ params: paramsPromise }) {
                                         })(problem.description)}
                                     </div>
 
-                                    {/* Input Format Section */}
-                                    {problem.inputFormat && (
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                                                <FileInput className="w-4 h-4 text-indigo-400" /> Input Format
-                                            </h3>
-                                            <div className="bg-white/5 p-4 rounded-lg border border-white/10">
-                                                <pre className="text-sm font-mono text-slate-300 whitespace-pre-wrap font-sans">{problem.inputFormat}</pre>
-                                            </div>
-                                        </div>
-                                    )}
 
-                                    {/* Output Format Section */}
-                                    {problem.outputFormat && (
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                                                <FileOutput className="w-4 h-4 text-indigo-400" /> Output Format
-                                            </h3>
-                                            <div className="bg-white/5 p-4 rounded-lg border border-white/10">
-                                                <pre className="text-sm font-mono text-slate-300 whitespace-pre-wrap font-sans">{problem.outputFormat}</pre>
-                                            </div>
-                                        </div>
-                                    )}
 
                                     {/* Constraints Section */}
                                     {problem.constraints && (

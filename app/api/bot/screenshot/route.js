@@ -24,7 +24,7 @@ async function captureProblem(problemUrl) {
             });
         } else {
             // Local development
-            const browserPath = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe';
+            const browserPath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
             browser = await puppeteer.launch({
                 executablePath: browserPath,
                 headless: "new",
