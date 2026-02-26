@@ -41,9 +41,22 @@ export default function ContestDetailPage({ params: paramsPromise }) {
             const n = new Date();
             const s = new Date(contest.startTime);
             const e = new Date(contest.endTime);
-            if (contest.isEnded || n >= e) setStatus('past');
-            else if (n >= s) setStatus('live');
-            else setStatus('upcoming');
+
+            setStatus(prevStatus => {
+                if (contest.isEnded || n >= e) {
+                    if (prevStatus === 'live') {
+                        window.location.reload();
+                    }
+                    return 'past';
+                } else if (n >= s) {
+                    if (prevStatus === 'upcoming') {
+                        window.location.reload();
+                    }
+                    return 'live';
+                } else {
+                    return 'upcoming';
+                }
+            });
         }, 1000);
         return () => clearInterval(timer);
     }, [contest]);
