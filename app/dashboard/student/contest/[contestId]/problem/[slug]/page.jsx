@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { Loader2, Play, Send, ArrowLeft, Code2, AlertCircle, Terminal, X, CheckCircle2, XCircle, History, FileText, RefreshCw, Eye, FileInput, FileOutput, Bell } from 'lucide-react';
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from "react-resizable-panels";
@@ -29,6 +29,7 @@ export default function ProblemPage({ params: paramsPromise }) {
 
     // Result Console State
     const [consoleOpen, setConsoleOpen] = useState(false);
+    const [consoleHeight, setConsoleHeight] = useState(300);
     const [submissionResult, setSubmissionResult] = useState(null);
     const [activeCaseTab, setActiveCaseTab] = useState(0);
 
@@ -523,13 +524,39 @@ export default function ProblemPage({ params: paramsPromise }) {
 
                         {/* Result Console */}
                         {consoleOpen && (
-                            <div className="h-[40%] min-h-[250px] w-full bg-[#1e1e1e] flex flex-col z-10 border-t border-white/10 shrink-0">
+                            <div
+                                style={{ height: consoleHeight }}
+                                className="w-full bg-[#1e1e1e] flex flex-col z-10 border-t border-white/10 shrink-0 relative"
+                            >
+                                {/* ── Drag handle to resize ── */}
+                                <div
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        const startY = e.clientY;
+                                        const startH = consoleHeight;
+                                        const onMove = (me) => {
+                                            const delta = startY - me.clientY;
+                                            setConsoleHeight(Math.max(160, Math.min(600, startH + delta)));
+                                        };
+                                        const onUp = () => {
+                                            window.removeEventListener('mousemove', onMove);
+                                            window.removeEventListener('mouseup', onUp);
+                                        };
+                                        window.addEventListener('mousemove', onMove);
+                                        window.addEventListener('mouseup', onUp);
+                                    }}
+                                    className="absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize bg-transparent hover:bg-indigo-500/40 transition-colors z-20 group"
+                                    title="Drag to resize"
+                                >
+                                    <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-full bg-white/10 group-hover:bg-indigo-400/60 transition-colors" />
+                                </div>
+
                                 <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5 shrink-0">
                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Test Results</span>
                                     <button onClick={() => setConsoleOpen(false)}><X className="w-4 h-4 text-slate-500 hover:text-white" /></button>
                                 </div>
 
-                                <div className="flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row w-full">
+                                <div className="flex-1 min-h-0 overflow-y-auto flex flex-col w-full">
                                     {isSubmitting || isRunning ? (
                                         <div className="w-full flex flex-col items-center justify-center p-10 text-slate-400 gap-3">
                                             <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
@@ -537,38 +564,46 @@ export default function ProblemPage({ params: paramsPromise }) {
                                         </div>
                                     ) : submissionResult ? (
                                         <>
-                                            {/* Sidebar Tabs */}
-                                            <div className="w-full md:w-48 bg-[#161616] border-r border-white/5 flex flex-col overflow-y-auto shrink-0">
-                                                <div className="p-3 border-b border-white/5">
-                                                    <div className={`text-lg font-bold flex items-center gap-2 ${submissionResult.status === 'Accepted' ? 'text-emerald-500' :
+                                            {/* ── Status + Horizontal Case Tabs ── */}
+                                            <div className="shrink-0 bg-[#161616] border-b border-white/5">
+                                                {/* Status Row */}
+                                                <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+                                                    <div className={`text-sm font-bold flex items-center gap-1.5 ${submissionResult.status === 'Accepted' ? 'text-emerald-500' :
                                                         submissionResult.status === 'Runtime Error' ? 'text-red-500' : 'text-rose-500'
                                                         }`}>
-                                                        {submissionResult.status === 'Accepted' && <CheckCircle2 className="w-5 h-5" />}
-                                                        {submissionResult.status !== 'Accepted' && <XCircle className="w-5 h-5" />}
+                                                        {submissionResult.status === 'Accepted' && <CheckCircle2 className="w-4 h-4" />}
+                                                        {submissionResult.status !== 'Accepted' && <XCircle className="w-4 h-4" />}
                                                         {submissionResult.status}
                                                     </div>
-                                                    <p className="text-xs text-slate-500 mt-1">
+                                                    <span className="text-xs text-slate-500">
                                                         {submissionResult.passed} / {submissionResult.total} passed
-                                                    </p>
+                                                    </span>
                                                 </div>
 
-                                                <div className="flex-1 p-2 space-y-2">
+                                                {/* Horizontal scrollable case tabs */}
+                                                <div
+                                                    className="flex items-center gap-1.5 px-4 pb-0 overflow-x-auto"
+                                                    style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.15) transparent' }}
+                                                >
                                                     {submissionResult.results?.map((res, idx) => (
                                                         <button
                                                             key={idx}
                                                             onClick={() => setActiveCaseTab(idx)}
-                                                            className={`w-full text-left px-3 py-2 rounded text-xs font-medium transition-colors flex items-center justify-between group ${activeCaseTab === idx ? 'bg-white/10 text-white' : 'text-slate-500 hover:bg-white/5'
-                                                                }`}
+                                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-t text-xs font-medium whitespace-nowrap transition-colors border-b-2 ${
+                                                                activeCaseTab === idx
+                                                                    ? 'border-indigo-500 text-white bg-white/8'
+                                                                    : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                                                            }`}
                                                         >
-                                                            <span>Case {idx + 1}</span>
-                                                            <div className={`w-2 h-2 rounded-full ${res.status === 'Passed' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${res.status === 'Passed' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                                            Case {idx + 1}
                                                         </button>
                                                     ))}
                                                 </div>
                                             </div>
 
-                                            {/* Detailed View */}
-                                            <div className="flex-1 bg-[#1e1e1e] p-6 overflow-y-auto min-h-0">
+                                            {/* ── Detailed View (scrollable) ── */}
+                                            <div className="flex-1 bg-[#1e1e1e] p-4 overflow-y-auto min-h-0">
                                                 {(submissionResult.message || submissionResult.stderr) ? (
                                                     <div className="bg-red-500/10 border border-red-500/20 p-4 rounded text-red-200 font-mono text-sm whitespace-pre-wrap">
                                                         {submissionResult.message || submissionResult.stderr}
