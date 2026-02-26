@@ -164,12 +164,16 @@ export async function POST(req) {
                 }
             }
 
+            const isHidden = !testCase.isPublic;
+
             detailResults.push({
                 testCaseId: i,
+                isHidden,
                 status: isPassed ? 'Passed' : 'Failed',
-                input: testCase.input,
-                expectedOutput: testCase.output,
-                actualOutput: actualOutput || errorOutput,
+                // Redact hidden test case data — only show pass/fail
+                input: isHidden ? null : testCase.input,
+                expectedOutput: isHidden ? null : testCase.output,
+                actualOutput: isHidden ? null : (actualOutput || errorOutput),
                 message: res.status.description
             });
         }
