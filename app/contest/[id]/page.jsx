@@ -5,12 +5,14 @@ import { Clock, CheckCircle2, Circle, AlertCircle, ArrowRight, ArrowLeft, Trophy
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import ContestTimer from '@/app/components/ContestTimer';
+import ContestLeaderboard from '@/app/components/ContestLeaderboard';
 
 export default function ContestDetailPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
     const [contest, setContest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState('loading');
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     const QUOTES = [
         "Practice is the price of mastery.",
@@ -168,19 +170,28 @@ export default function ContestDetailPage({ params: paramsPromise }) {
         );
     }
 
-    // --- State 2: Past Contest → redirect to dashboard ---
+    // --- State 2: Past Contest → Show Leaderboard ---
     if (status === 'past') {
-        if (typeof window !== 'undefined') {
-            window.location.replace('/dashboard');
-        }
         return (
-            <div className="min-h-screen bg-[#0A0E1A] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#3B82F6] animate-spin" />
-            </div>
+            <ContestLeaderboard
+                contest={contest}
+                onBack={() => { window.location.href = '/dashboard'; }}
+                isVolunteer={false}
+            />
         );
     }
 
     // --- State 3: Live Contest (Lobby) ---
+    if (showLeaderboard) {
+        return (
+            <ContestLeaderboard
+                contest={contest}
+                onBack={() => setShowLeaderboard(false)}
+                isVolunteer={false}
+            />
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#0A0E1A] text-white selection:bg-[#3B82F6]/30">
             {/* Header */}
@@ -200,6 +211,12 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                             variant="header"
                             onEnd={() => setStatus('past')}
                         />
+                        <button
+                            onClick={() => setShowLeaderboard(true)}
+                            className="text-xs font-medium text-amber-400 hover:text-white hover:bg-amber-500/20 transition-colors px-3 py-1.5 rounded-lg border border-amber-500/30 flex items-center gap-1.5"
+                        >
+                            <Trophy className="w-3.5 h-3.5" /> Leaderboard
+                        </button>
                         <Link href="/dashboard">
                             <button className="text-xs font-medium text-[#94A3B8] hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10">
                                 Exit Contest
