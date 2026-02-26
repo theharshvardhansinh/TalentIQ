@@ -13,7 +13,7 @@ export default function ProblemPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
     const [problem, setProblem] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [language, setLanguage] = useState('javascript');
+    const [language, setLanguage] = useState('cpp');
     const [code, setCode] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -114,7 +114,7 @@ export default function ProblemPage({ params: paramsPromise }) {
                 // If no user code is saved, populate with DB starter code
                 const savedCode = localStorage.getItem(CODE_KEY);
                 if (!savedCode) {
-                    const currentLang = localStorage.getItem(LANG_KEY) || 'javascript';
+                    const currentLang = localStorage.getItem(LANG_KEY) || 'cpp';
                     const dbTemplate = data.data.starterCode?.[currentLang];
                     // Only override if we have a specific template from DB
                     if (dbTemplate) {
