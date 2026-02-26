@@ -82,7 +82,10 @@ export async function POST(req) {
                 // Base64 Encoded Request
                 const res = await fetch(`${JUDGE0_URL}/submissions?base64_encoded=true&wait=true`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': '69420'
+                    },
                     body: JSON.stringify(payload)
                 });
 
