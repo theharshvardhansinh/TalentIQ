@@ -610,27 +610,41 @@ export default function ProblemPage({ params: paramsPromise }) {
                                                     </div>
                                                 ) : submissionResult.results && submissionResult.results[activeCaseTab] ? (
                                                     <div className="space-y-4 animate-in fade-in duration-300">
-                                                        <div>
-                                                            <label className="text-xs text-slate-500 uppercase font-bold">Input</label>
-                                                            <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
-                                                                {submissionResult.results[activeCaseTab].input}
+                                                        {submissionResult.results[activeCaseTab].isHidden || submissionResult.results[activeCaseTab].input === null ? (
+                                                            <div className="flex flex-col items-center justify-center p-10 text-slate-500 bg-white/5 border border-white/10 rounded-xl mt-4">
+                                                                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                                                                    <AlertCircle className="w-6 h-6 text-slate-400" />
+                                                                </div>
+                                                                <h3 className="text-white font-bold text-lg mb-1">Hidden Test Case</h3>
+                                                                <p className="text-sm text-center max-w-sm">
+                                                                    This is a hidden test case used for evaluating your submission. The input and output data are not visible to users.
+                                                                </p>
                                                             </div>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-xs text-slate-500 uppercase font-bold">Expected Output</label>
-                                                            <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
-                                                                {submissionResult.results[activeCaseTab].expectedOutput}
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-xs text-slate-500 uppercase font-bold">Your Output</label>
-                                                            <div className={`mt-1 border p-3 rounded font-mono text-sm whitespace-pre-wrap ${submissionResult.results[activeCaseTab].status === 'Passed'
-                                                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                                                                : 'bg-red-500/10 border-red-500/20 text-red-300'
-                                                                }`}>
-                                                                {submissionResult.results[activeCaseTab].actualOutput}
-                                                            </div>
-                                                        </div>
+                                                        ) : (
+                                                            <>
+                                                                <div>
+                                                                    <label className="text-xs text-slate-500 uppercase font-bold">Input</label>
+                                                                    <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
+                                                                        {submissionResult.results[activeCaseTab].input}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="text-xs text-slate-500 uppercase font-bold">Expected Output</label>
+                                                                    <div className="mt-1 bg-white/5 border border-white/10 p-3 rounded font-mono text-sm text-slate-300 whitespace-pre-wrap">
+                                                                        {submissionResult.results[activeCaseTab].expectedOutput}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="text-xs text-slate-500 uppercase font-bold">Your Output</label>
+                                                                    <div className={`mt-1 border p-3 rounded font-mono text-sm whitespace-pre-wrap ${submissionResult.results[activeCaseTab].status === 'Passed'
+                                                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                                                                        : 'bg-red-500/10 border-red-500/20 text-red-300'
+                                                                        }`}>
+                                                                        {submissionResult.results[activeCaseTab].actualOutput}
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="text-center text-slate-500 mt-10">Select a test case to view details</div>
