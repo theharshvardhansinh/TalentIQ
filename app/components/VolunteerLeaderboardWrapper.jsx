@@ -10,5 +10,5 @@ export default function VolunteerLeaderboardWrapper({ contest }) {
         router.push('/dashboard/volunteer');
     };
 
-    return <ContestLeaderboard contest={contest} onBack={handleBack} />;
+    return <ContestLeaderboard contest={contest} onBack={handleBack} isVolunteer={true} />;
 }

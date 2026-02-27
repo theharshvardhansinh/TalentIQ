@@ -40,10 +40,15 @@ export async function GET(req, { params }) {
                 }
             },
             {
+                $sort: { createdAt: 1 }
+            },
+            {
                 // Deduplicate: one entry per (user, problem)
                 $group: {
                     _id: { userId: '$userId', problemSlug: '$problemSlug' },
-                    firstAcceptedAt: { $min: '$createdAt' },
+                    firstAcceptedAt: { $first: '$createdAt' },
+                    code: { $first: '$code' },
+                    language: { $first: '$language' }
                 }
             },
             {
@@ -51,6 +56,7 @@ export async function GET(req, { params }) {
                 $group: {
                     _id: '$_id.userId',
                     solvedSlugs: { $push: '$_id.problemSlug' },
+                    solvedDetails: { $push: { slug: '$_id.problemSlug', code: '$code', language: '$language', time: '$firstAcceptedAt' } },
                     solvedCount: { $sum: 1 },
                     lastSolvedAt: { $max: '$firstAcceptedAt' },
                 }
@@ -62,6 +68,7 @@ export async function GET(req, { params }) {
         solvedAgg.forEach(row => {
             solvedMap[row._id.toString()] = {
                 solvedSlugs: row.solvedSlugs,
+                solvedDetails: row.solvedDetails,
                 solvedCount: row.solvedCount,
                 lastSolvedAt: row.lastSolvedAt,
             };
@@ -85,13 +92,14 @@ export async function GET(req, { params }) {
         // ── 6. Build leaderboard rows ──────────────────────────────────────────
         const rows = users.map(u => {
             const uid = u._id.toString();
-            const info = solvedMap[uid] || { solvedSlugs: [], solvedCount: 0, lastSolvedAt: null };
+            const info = solvedMap[uid] || { solvedSlugs: [], solvedDetails: [], solvedCount: 0, lastSolvedAt: null };
             return {
                 _id: uid,
                 name: u.name,
                 email: u.email,
                 solvedCount: info.solvedCount,
                 solvedSlugs: info.solvedSlugs,
+                solvedDetails: info.solvedDetails,
                 totalAttempts: attemptsMap[uid] || 0,
                 lastSolvedAt: info.lastSolvedAt,
                 // Score: each problem is worth equal marks; scale to 100

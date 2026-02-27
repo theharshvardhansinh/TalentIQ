@@ -76,9 +76,9 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
 
     /** Builds inline-styled HTML for one certificate (html2canvas-friendly). */
     const buildCertificateHTML = (studentName, contestTitle, rank, date) => {
-        const rankLabels  = { 1: '1st Place 🥇', 2: '2nd Place 🥈', 3: '3rd Place 🥉' };
-        const rankColors  = { 1: '#F59E0B',      2: '#94A3B8',      3: '#CD7F32' };
-        const rankGrad    = {
+        const rankLabels = { 1: '1st Place 🥇', 2: '2nd Place 🥈', 3: '3rd Place 🥉' };
+        const rankColors = { 1: '#F59E0B', 2: '#94A3B8', 3: '#CD7F32' };
+        const rankGrad = {
             1: 'linear-gradient(135deg,#F59E0B,#D97706)',
             2: 'linear-gradient(135deg,#94A3B8,#64748B)',
             3: 'linear-gradient(135deg,#CD7F32,#A0522D)',
@@ -526,6 +526,25 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                                                 </p>
                                                             </div>
                                                         </div>
+
+                                                        {isVolunteer && student.solvedDetails && student.solvedDetails.length > 0 && (
+                                                            <div className="mt-4 border-t border-[#3B82F6]/10 pt-5">
+                                                                <h4 className="text-sm font-bold text-white mb-3">Submitted Code (Accepted)</h4>
+                                                                <div className="space-y-4">
+                                                                    {student.solvedDetails.map((detail, di) => (
+                                                                        <div key={di} className="bg-[#1E293B] rounded-lg border border-white/10 overflow-hidden">
+                                                                            <div className="flex justify-between items-center bg-white/5 px-4 py-3 border-b border-white/10">
+                                                                                <span className="text-sm font-bold text-slate-300">{detail.slug}</span>
+                                                                                <span className="text-xs text-indigo-400 font-mono bg-indigo-500/10 px-2 py-0.5 rounded">{detail.language}</span>
+                                                                            </div>
+                                                                            <pre className="p-4 text-xs font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">
+                                                                                {detail.code}
+                                                                            </pre>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             )}
