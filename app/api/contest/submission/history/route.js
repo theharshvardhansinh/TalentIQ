@@ -15,6 +15,7 @@ export async function GET(req) {
 
         const { searchParams } = new URL(req.url);
         const problemSlug = searchParams.get('problemSlug');
+        const contestId = searchParams.get('contestId');
 
         if (!problemSlug) {
             return NextResponse.json({ error: 'Missing problemSlug' }, { status: 400 });
@@ -22,10 +23,16 @@ export async function GET(req) {
 
         await dbConnect();
 
-        const submissions = await Submission.find({
+        const query = {
             userId: session.user.id,
             problemSlug
-        })
+        };
+
+        if (contestId) {
+            query.contestId = contestId;
+        }
+
+        const submissions = await Submission.find(query)
             .select('status language code createdAt')
             .sort({ createdAt: -1 })
             .lean();

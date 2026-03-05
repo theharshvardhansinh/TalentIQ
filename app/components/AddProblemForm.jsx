@@ -329,7 +329,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
     };
 
     useEffect(() => {
-        if (initialData) {
+        if (isEditMode && initialData) {
             setFormData({
                 title: initialData.title || '',
                 description: initialData.description || '',
@@ -344,8 +344,33 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
             if (initialData.testCases && initialData.testCases.length > 0) {
                 setTestCases(initialData.testCases);
             }
+        } else if (!isEditMode) {
+            const saved = localStorage.getItem(`draft_problem_${contestId}`);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.formData) setFormData(parsed.formData);
+                    if (parsed.testCases) setTestCases(parsed.testCases);
+                    if (parsed.aiPrompt) setAiPrompt(parsed.aiPrompt);
+                    if (parsed.platform) setPlatform(parsed.platform);
+                    if (parsed.leetcodeTitle) setLeetcodeTitle(parsed.leetcodeTitle);
+                    if (parsed.cfContestId) setCfContestId(parsed.cfContestId);
+                    if (parsed.cfIndex) setCfIndex(parsed.cfIndex);
+                    if (parsed.codechefUrl) setCodechefUrl(parsed.codechefUrl);
+                } catch (e) {
+                    console.error("Failed to parse draft", e);
+                }
+            }
         }
-    }, [initialData]);
+    }, [initialData, isEditMode, contestId]);
+
+    // Save draft periodically
+    useEffect(() => {
+        if (!isEditMode && !loading && !botLoading && !generating && formData.title !== undefined) {
+            const draft = { formData, testCases, aiPrompt, platform, leetcodeTitle, cfContestId, cfIndex, codechefUrl };
+            localStorage.setItem(`draft_problem_${contestId}`, JSON.stringify(draft));
+        }
+    }, [formData, testCases, aiPrompt, platform, leetcodeTitle, cfContestId, cfIndex, codechefUrl, isEditMode, contestId, loading, botLoading, generating]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -396,6 +421,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 toast.success(isEditMode ? 'Problem updated successfully!' : 'Problem added successfully!');
 
                 if (!isEditMode) {
+                    localStorage.removeItem(`draft_problem_${contestId}`);
                     setFormData({
                         title: '',
                         description: '',
@@ -408,6 +434,14 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                         driverCode: { cpp: '', java: '', python: '', javascript: '' }
                     });
                     setTestCases([{ input: '', output: '', isPublic: false }]);
+                    setAiPrompt('');
+                    setLeetcodeTitle('');
+                    setCfContestId('');
+                    setCfIndex('');
+                    setCodechefUrl('');
+                    setPlatform('custom');
+                    setDescTab('write');
+                    setActiveTab('cpp');
                 }
             } else {
                 toast.error(data.error || 'Failed to save problem');
@@ -531,15 +565,17 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
 
 
-                        <button
-                            type="button"
-                            onClick={generateWithAI}
-                            disabled={generating || (platform === 'custom' && !aiPrompt.trim()) || (platform === 'leetcode' && !leetcodeTitle.trim()) || (platform === 'codeforces' && (!cfContestId.trim() || !cfIndex.trim())) || (platform === 'codechef')}
-                            className="px-6 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
-                        >
-                            {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                            Generate (AI)
-                        </button>
+                        {(platform === 'custom' || platform === 'leetcode') && (
+                            <button
+                                type="button"
+                                onClick={generateWithAI}
+                                disabled={generating || (platform === 'custom' && !aiPrompt.trim()) || (platform === 'leetcode' && !leetcodeTitle.trim())}
+                                className="px-6 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+                            >
+                                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                Generate (AI)
+                            </button>
+                        )}
 
                         {(platform === 'codeforces' || platform === 'leetcode') && (
                             <button
@@ -570,8 +606,7 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 <p className="text-[10px] text-[#64748B] mt-2">
                     {platform === 'custom' && "Enter a problem name or topic. AI will fill details."}
                     {platform === 'leetcode' && "Enter Title (e.g. 'Two Sum') or URL. 'Fetch Screenshot' captures the problem."}
-                    {platform === 'leetcode' && "Enter Title (e.g. 'Two Sum') or URL. 'Fetch Screenshot' captures the problem."}
-                    {platform === 'codeforces' && "Enter Codeforces Contest ID and Problem Index. Use 'Generate' for AI text, or 'Fetch Screenshot' for an image capture."}
+                    {platform === 'codeforces' && "Enter Codeforces Contest ID and Problem Index. Use 'Fetch Screenshot' for an image capture."}
                     {platform === 'codechef' && "Enter CodeChef Problem URL. The system will scrape the text content and fill the form."}
 
                 </p>

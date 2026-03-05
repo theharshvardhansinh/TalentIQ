@@ -172,6 +172,18 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
         }
     };
 
+    const handleDownloadCert = async (studentName, contestTitle, rank) => {
+        try {
+            const pngBase64 = await generateCertificatePNG(studentName, contestTitle, rank);
+            const a = document.createElement("a");
+            a.href = "data:image/png;base64," + pngBase64;
+            a.download = `Certificate_${studentName.replace(/\s+/g, '_')}_Rank${rank}.png`;
+            a.click();
+        } catch (error) {
+            console.error("Download failed", error);
+        }
+    };
+
     const handleSendCertificates = async () => {
         if (!confirm('Generate PNG certificates and send to the top 3 winners?')) return;
         setSendingCerts(true);
@@ -184,22 +196,33 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                 return;
             }
 
-            // Generate a PNG for each winner in the browser
-            const certificates = [];
+            // Generate and send a PNG for each winner individually to avoid 4MB payload limit
+            const allResults = [];
             for (let i = 0; i < top3.length; i++) {
                 const winner = top3[i];
-                const pngBase64 = await generateCertificatePNG(winner.name, contest.title, i + 1);
-                certificates.push({ name: winner.name, email: winner.email, rank: i + 1, pngBase64 });
+                try {
+                    const pngBase64 = await generateCertificatePNG(winner.name, contest.title, i + 1);
+                    const res = await fetch(`/api/admin/contests/${contest._id}/send-certificates`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ certificates: [{ name: winner.name, email: winner.email, rank: i + 1, pngBase64 }] }),
+                    });
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        allResults.push(...data.data);
+                    } else {
+                        allResults.push({ name: winner.name, email: winner.email, rank: i + 1, status: 'failed', error: data.message || 'Error API' });
+                    }
+                } catch (e) {
+                    allResults.push({ name: winner.name, email: winner.email, rank: i + 1, status: 'failed', error: e.message });
+                }
             }
 
-            // Send all PNGs to the backend for emailing
-            const res = await fetch(`/api/admin/contests/${contest._id}/send-certificates`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ certificates }),
+            setCertResult({
+                success: allResults.some(r => r.status === 'sent'),
+                message: `Processed ${allResults.length} certificates.`,
+                data: allResults
             });
-            const data = await res.json();
-            setCertResult(data);
         } catch (err) {
             console.error(err);
             setCertResult({ success: false, message: 'Failed to generate or send certificates.' });
@@ -399,11 +422,22 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
 
                                                 {/* Student */}
                                                 <td className="p-4">
-                                                    <div className="flex flex-col">
+                                                    <div className="flex flex-col items-start gap-1">
                                                         <span className="font-semibold text-white group-hover:text-[#3B82F6] transition-colors">
                                                             {student.name}
                                                         </span>
                                                         <span className="text-xs text-[#475569]">{student.email}</span>
+                                                        {index < 3 && (
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDownloadCert(student.name, contest.title, index + 1);
+                                                                }}
+                                                                className="mt-1 text-[10px] text-[#3B82F6] hover:text-white transition-colors bg-[#3B82F6]/10 px-2 py-0.5 rounded cursor-pointer border border-[#3B82F6]/20"
+                                                            >
+                                                                Download Certificate
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
 

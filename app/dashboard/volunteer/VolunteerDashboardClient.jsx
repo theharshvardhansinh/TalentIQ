@@ -165,15 +165,11 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                                             </div>
 
                                             <div className="flex gap-3">
-                                                <Link href={`/dashboard/volunteer/contest/${contest._id}/monitor`} className="flex-1">
-                                                    <button className="w-full py-2.5 bg-[#22D3EE] hover:bg-[#06B6D4] text-[#0A0E1A] font-bold rounded-xl transition-all shadow-lg shadow-[#22D3EE]/20 flex items-center justify-center gap-2">
-                                                        <MonitorPlay className="w-4 h-4" /> Live Monitor
-                                                    </button>
+                                                <Link href={`/dashboard/volunteer/contest/${contest._id}/monitor`} className="flex-1 w-full py-2.5 bg-[#22D3EE] hover:bg-[#06B6D4] text-[#0A0E1A] font-bold rounded-xl transition-all shadow-lg shadow-[#22D3EE]/20 flex items-center justify-center gap-2">
+                                                    <MonitorPlay className="w-4 h-4" /> Live Monitor
                                                 </Link>
-                                                <Link href={`/dashboard/volunteer/contest/${contest._id}/edit`}>
-                                                    <button className="p-2.5 bg-[#1E293B] hover:bg-[#3B82F6]/10 rounded-xl border border-[#3B82F6]/10 text-[#94A3B8] hover:text-white transition-colors">
-                                                        <Edit3 className="w-4 h-4" />
-                                                    </button>
+                                                <Link href={`/dashboard/volunteer/contest/${contest._id}/edit`} className="p-2.5 bg-[#1E293B] hover:bg-[#3B82F6]/10 rounded-xl border border-[#3B82F6]/10 text-[#94A3B8] hover:text-white transition-colors flex items-center justify-center">
+                                                    <Edit3 className="w-4 h-4" />
                                                 </Link>
                                             </div>
                                         </div>
@@ -226,10 +222,8 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                                             <button className="flex-1 py-2 bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20 text-[#3B82F6] font-semibold rounded-lg border border-[#3B82F6]/20 transition-all flex items-center justify-center gap-2 text-sm">
                                                 <Users className="w-4 h-4" /> Manage
                                             </button>
-                                            <Link href={`/dashboard/volunteer/contest/${contest._id}/edit`} className="flex-1">
-                                                <button className="w-full py-2 bg-[#1E293B] hover:bg-[#3B82F6]/10 text-[#94A3B8] hover:text-white font-medium rounded-lg border border-[#3B82F6]/10 transition-all flex items-center justify-center gap-2 text-sm">
-                                                    <Edit3 className="w-4 h-4" /> Edit
-                                                </button>
+                                            <Link href={`/dashboard/volunteer/contest/${contest._id}/edit`} className="flex-1 w-full py-2 bg-[#1E293B] hover:bg-[#3B82F6]/10 text-[#94A3B8] hover:text-white font-medium rounded-lg border border-[#3B82F6]/10 transition-all flex items-center justify-center gap-2 text-sm">
+                                                <Edit3 className="w-4 h-4" /> Edit
                                             </Link>
                                         </div>
                                     </div>
@@ -270,10 +264,8 @@ export default function VolunteerDashboardClient({ session, liveContests, upcomi
                                             <span className="text-xs text-[#475569] bg-[#1E293B] px-2 py-1 rounded">Finished</span>
                                         </div>
                                         <div className="flex gap-3">
-                                            <Link href={`/dashboard/volunteer/contest/${contest._id}/results`} className="w-full">
-                                                <button className="w-full py-2 border border-[#3B82F6]/10 hover:border-[#3B82F6]/20 text-[#94A3B8]/60 hover:text-[#94A3B8] text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2">
-                                                    <BarChart2 className="w-4 h-4" /> View Leaderboard
-                                                </button>
+                                            <Link href={`/dashboard/volunteer/contest/${contest._id}/results`} className="w-full py-2 border border-[#3B82F6]/10 hover:border-[#3B82F6]/20 text-[#94A3B8]/60 hover:text-[#94A3B8] text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2">
+                                                <BarChart2 className="w-4 h-4" /> View Leaderboard
                                             </Link>
                                         </div>
                                     </div>

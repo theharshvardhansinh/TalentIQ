@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Save, Trash2, Plus, GripVertical, Loader2, X, Edit3, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import AddProblemForm from '@/app/components/AddProblemForm';
+import { localDatetimeToISO } from '@/lib/utils';
 
 export default function EditContestPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
@@ -129,23 +130,7 @@ export default function EditContestPage({ params: paramsPromise }) {
         });
     };
 
-    /**
-     * Convert a datetime-local string (e.g. "2026-02-24T06:13") to a proper ISO
-     * string that preserves the user's LOCAL time intention before sending to API.
-     *
-     * Without this, the raw string is treated as UTC by JS/MongoDB, causing the
-     * stored time to be 5h30m EARLIER than intended for IST users, which then
-     * displays as 5h30m LATER when shown in local time again.
-     */
-    const localDatetimeToISO = (datetimeLocalStr) => {
-        if (!datetimeLocalStr) return '';
-        const offsetMin = new Date().getTimezoneOffset(); // e.g. -330 for IST
-        const sign = offsetMin <= 0 ? '+' : '-';
-        const absMin = Math.abs(offsetMin);
-        const hh = String(Math.floor(absMin / 60)).padStart(2, '0');
-        const mm = String(absMin % 60).padStart(2, '0');
-        return new Date(`${datetimeLocalStr}:00${sign}${hh}:${mm}`).toISOString();
-    };
+
 
     const handleSaveContest = async () => {
         setSaving(true);
@@ -178,6 +163,38 @@ export default function EditContestPage({ params: paramsPromise }) {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleDeleteContest = async () => {
+        toast("PERMANENTLY delete contest?", {
+            description: "All problems and submissions associated with it will be deleted! This cannot be undone.",
+            action: {
+                label: "Delete",
+                onClick: async () => {
+                    setSaving(true);
+                    try {
+                        const res = await fetch(`/api/contest/${params.id}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            toast.success("Contest deleted permanently.");
+                            router.push('/dashboard/volunteer');
+                        } else {
+                            toast.error(data.error || "Failed to delete contest");
+                            setSaving(false);
+                        }
+                    } catch (error) {
+                        console.error("Error deleting contest:", error);
+                        toast.error("Error deleting contest");
+                        setSaving(false);
+                    }
+                }
+            },
+            cancel: {
+                label: "Cancel",
+            },
+        });
     };
 
     // --- Problem Modal Handlers ---
@@ -240,10 +257,15 @@ export default function EditContestPage({ params: paramsPromise }) {
                         </div>
                     </div>
                     <div className="flex gap-3">
-                        <Link href="/dashboard/volunteer">
-                            <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 font-medium rounded-lg transition-colors border border-white/10 text-sm">
-                                Cancel
-                            </button>
+                        <button
+                            onClick={handleDeleteContest}
+                            disabled={saving}
+                            className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium rounded-lg transition-colors border border-red-500/20 text-sm flex items-center gap-2"
+                        >
+                            <Trash2 className="w-4 h-4" /> Delete Contest
+                        </button>
+                        <Link href="/dashboard/volunteer" className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 font-medium rounded-lg transition-colors border border-white/10 text-sm flex items-center justify-center">
+                            Cancel
                         </Link>
                         <button
                             onClick={handleSaveContest}

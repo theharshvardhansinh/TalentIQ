@@ -74,7 +74,8 @@ export async function GET(req, { params }) {
         const problemSlugs = contest.problems.map(p => p.slug);
         const submissions = await Submission.find({
             userId: session.user.id,
-            problemSlug: { $in: problemSlugs }
+            problemSlug: { $in: problemSlugs },
+            contestId: id // Ensure we only count submissions made for this specific contest
         }).select('problemSlug status').lean();
 
         // Create a map of slug -> status

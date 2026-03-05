@@ -3,6 +3,8 @@
 import dbConnect from '@/lib/db';
 import Contest from '@/models/Contest';
 import User from '@/models/User'; // Assuming User model for admin verification
+import Problem from '@/models/Problem';
+import Submission from '@/models/Submission';
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
@@ -42,7 +44,15 @@ export async function DELETE(req, { params }) {
             return NextResponse.json({ success: false, message: 'Contest not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, message: 'Contest deleted successfully' });
+        // 3. Delete associated problems
+        if (deletedContest.problems && deletedContest.problems.length > 0) {
+            await Problem.deleteMany({ _id: { $in: deletedContest.problems } });
+        }
+
+        // 4. Delete associated submissions (optional cleanup)
+        await Submission.deleteMany({ contestId: id });
+
+        return NextResponse.json({ success: true, message: 'Contest and associated problems deleted successfully' });
 
     } catch (error) {
         console.error('Delete Contest Error:', error);

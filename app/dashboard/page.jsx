@@ -18,7 +18,11 @@ export default async function DashboardPage() {
     const { user: sessionUser } = session;
     const userId = sessionUser.id || sessionUser._id;
 
-    if (sessionUser.role === 'volunteer' || sessionUser.role === 'admin') {
+    if (sessionUser.role === 'admin') {
+        redirect('/admin');
+    }
+
+    if (sessionUser.role === 'volunteer') {
         redirect('/dashboard/volunteer');
     }
 

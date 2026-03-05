@@ -2,12 +2,129 @@
 'use client';
 import { useState, useEffect, use, useRef, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
-import { Loader2, Play, Send, ArrowLeft, Code2, AlertCircle, Terminal, X, CheckCircle2, XCircle, History, FileText, RefreshCw, Eye, FileInput, FileOutput, Bell } from 'lucide-react';
+import { Loader2, Play, Send, ArrowLeft, Code2, AlertCircle, Terminal, X, CheckCircle2, XCircle, History, FileText, RefreshCw, Eye, FileInput, FileOutput, Bell, Maximize, Minimize, ExternalLink, Plus, Minus } from 'lucide-react';
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from "react-resizable-panels";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import ContestTimer from '@/app/components/ContestTimer';
+
+const ImageViewer = ({ src, alt }) => {
+    const [scale, setScale] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (container) {
+            const wheelListener = (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    // Fine-tuned zoom sensitivity
+                    const zoomSensitivity = 0.003;
+                    const delta = -e.deltaY * zoomSensitivity;
+                    setScale((prev) => Math.min(Math.max(0.3, prev + delta), 5));
+                }
+            };
+            container.addEventListener('wheel', wheelListener, { passive: false });
+            return () => container.removeEventListener('wheel', wheelListener);
+        }
+    }, []);
+
+    const handleMouseDown = (e) => {
+        setIsDragging(true);
+        setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    };
+
+    const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        setPosition({
+            x: e.clientX - dragStart.x,
+            y: e.clientY - dragStart.y
+        });
+    };
+
+    const handleMouseUp = () => setIsDragging(false);
+
+    const resetView = () => {
+        setScale(1);
+        setPosition({ x: 0, y: 0 });
+    };
+
+    const zoomIn = () => setScale(prev => Math.min(prev + 0.3, 5));
+    const zoomOut = () => setScale(prev => Math.max(prev - 0.3, 0.3));
+
+    return (
+        <div className="my-6 rounded-xl overflow-hidden shadow-2xl shadow-black/80 border border-white/10 bg-[#0d1117] flex flex-col transition-all group">
+            {/* Top Toolbar */}
+            <div className="flex items-center justify-between p-2.5 bg-[#161b22] border-b border-white/5 z-10 relative">
+                <span className="text-xs text-slate-400 font-medium px-2 flex items-center gap-2">
+                    <Maximize className="w-3.5 h-3.5 text-indigo-400" /> Interactive View
+                    <span className="hidden sm:inline bg-white/5 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ml-2 shadow-inner border border-white/5 text-slate-500">Ctrl + Scroll to zoom &bull; Drag to pan</span>
+                </span>
+                <div className="flex items-center gap-1.5">
+                    <button onClick={zoomOut} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 transition-colors border border-transparent hover:border-white/10 shadow-sm" title="Zoom Out">
+                        <Minus className="w-4 h-4" />
+                    </button>
+                    <button onClick={resetView} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-slate-300 transition-colors border border-transparent hover:border-white/10 w-16 text-center select-none shadow-sm" title="Reset View">
+                        {Math.round(scale * 100)}%
+                    </button>
+                    <button onClick={zoomIn} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 transition-colors border border-transparent hover:border-white/10 shadow-sm" title="Zoom In">
+                        <Plus className="w-4 h-4" />
+                    </button>
+                    
+                    <div className="w-px h-5 bg-white/10 mx-1"></div>
+
+                    <a href={src} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors border border-indigo-500/20 shadow-sm flex items-center gap-1.5 px-3 select-none" title="Open Image File in New Tab">
+                        <span className="text-xs font-bold hidden sm:block">Open File</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                </div>
+            </div>
+
+            {/* Interactive Canvas */}
+            <div 
+                ref={containerRef}
+                className={`relative overflow-hidden bg-[#050505] flex items-center justify-center transition-colors min-h-[400px] h-auto max-h-[85vh] ${isDragging ? 'cursor-grabbing' : 'cursor-grab hover:bg-[#0a0a0a]'}`}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+            >
+                {/* Visual grid background for context when panning far */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
+                
+                <div 
+                    style={{ 
+                        transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`, 
+                        // Smooth transition only when snapping to buttons, otherwise immediate for drag tracking
+                        transition: isDragging ? 'none' : 'transform 0.15s cubic-bezier(0.2, 0, 0, 1)'
+                    }}
+                    className="origin-center will-change-transform z-10 inline-flex items-center justify-center"
+                >
+                    <img
+                        src={src}
+                        alt={alt || "Problem Challenge Image"}
+                        className="max-w-none pointer-events-none select-none drop-shadow-2xl border border-white/5 bg-white rounded-lg"
+                        style={{ maxWidth: '800px', width: '100%', height: 'auto' }} // Ensure it starts reasonably sized 
+                    />
+                </div>
+
+                {/* Return to center hint (only shows if panned far away) */}
+                {(Math.abs(position.x) > 300 || Math.abs(position.y) > 300) && !isDragging && (
+                    <button 
+                        onClick={resetView}
+                        className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-xs font-bold shadow-xl backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 z-20"
+                    >
+                        <RefreshCw className="w-3.5 h-3.5" /> Return to Center
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
 
 export default function ProblemPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
@@ -402,13 +519,7 @@ export default function ProblemPage({ params: paramsPromise }) {
                                                 const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
                                                 if (imageMatch) {
                                                     return (
-                                                        <div key={index} className="my-6 rounded-xl overflow-hidden shadow-xl shadow-black/50 border border-white/10 bg-white">
-                                                            <img
-                                                                src={imageMatch[2]}
-                                                                alt={imageMatch[1] || "Problem Image"}
-                                                                className="w-full object-contain"
-                                                            />
-                                                        </div>
+                                                        <ImageViewer key={index} src={imageMatch[2]} alt={imageMatch[1]} />
                                                     );
                                                 }
                                                 return <span key={index}>{part}</span>;

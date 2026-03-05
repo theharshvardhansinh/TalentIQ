@@ -74,3 +74,44 @@ export async function PUT(req, { params }) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function DELETE(req, { params }) {
+    try {
+        const session = await getSession();
+        if (!session || (session.user.role !== 'volunteer' && session.user.role !== 'admin')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const resolvedParams = await params;
+        const { id } = resolvedParams;
+
+        await dbConnect();
+
+        const contest = await Contest.findById(id);
+        if (!contest) {
+            return NextResponse.json({ error: 'Contest not found' }, { status: 404 });
+        }
+
+        // Check if the user is an admin or the creator of the contest
+        if (session.user.role !== 'admin' && contest.createdBy.toString() !== session.user.id) {
+            return NextResponse.json({ error: 'Not authorized to delete this contest' }, { status: 403 });
+        }
+
+        // Delete associated problems
+        if (contest.problems && contest.problems.length > 0) {
+            await Problem.deleteMany({ _id: { $in: contest.problems } });
+        }
+
+        // Delete associated submissions
+        const Submission = (await import('@/models/Submission')).default;
+        await Submission.deleteMany({ contestId: id });
+
+        await Contest.findByIdAndDelete(id);
+
+        return NextResponse.json({ success: true, message: 'Contest and associated data deleted successfully' });
+
+    } catch (error) {
+        console.error('Error deleting contest:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

@@ -75,9 +75,13 @@ export async function DELETE(req, { params }) {
         await dbConnect();
         const { id } = await params;
 
+        // Ensure Submission model is loaded
+        const Submission = (await import('@/models/Submission')).default;
+        await Submission.deleteMany({ problemId: id });
+
         await Problem.findByIdAndDelete(id);
 
-        return NextResponse.json({ success: true, message: 'Problem deleted' });
+        return NextResponse.json({ success: true, message: 'Problem and associated submissions deleted' });
     } catch (error) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

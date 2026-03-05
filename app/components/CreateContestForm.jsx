@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Loader2, Calendar, Layout, Users, FileQuestion, Clock, Check } from 'lucide-react';
+import { localDatetimeToISO } from '@/lib/utils';
 
 export default function CreateContestForm({ onSuccess }) {
     const [loading, setLoading] = useState(false);
@@ -42,27 +43,7 @@ export default function CreateContestForm({ onSuccess }) {
         });
     };
 
-    /**
-     * Convert a datetime-local string (e.g. "2026-02-24T09:10") to a proper
-     * ISO string that preserves the user's LOCAL time intention.
-     *
-     * Problem: new Date("2026-02-24T09:10") is treated as UTC by JS engines,
-     * so IST users (UTC+5:30) see their times shifted 5h30m earlier in the DB.
-     *
-     * Fix: append the browser's actual UTC offset so the Date is constructed
-     * at the correct instant in time.
-     */
-    const localDatetimeToISO = (datetimeLocalStr) => {
-        if (!datetimeLocalStr) return '';
-        // Get local offset in minutes, e.g. -330 for IST (UTC+5:30)
-        const offsetMin = new Date().getTimezoneOffset(); // negative for ahead of UTC
-        const sign = offsetMin <= 0 ? '+' : '-';
-        const absMin = Math.abs(offsetMin);
-        const hh = String(Math.floor(absMin / 60)).padStart(2, '0');
-        const mm = String(absMin % 60).padStart(2, '0');
-        // Append offset so JS Date constructor uses it correctly
-        return new Date(`${datetimeLocalStr}:00${sign}${hh}:${mm}`).toISOString();
-    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();

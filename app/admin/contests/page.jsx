@@ -49,8 +49,7 @@ function ContestsPageContent() {
     };
 
     const handleProblemAdded = () => {
-        // Optionally refresh contest details if we were showing them
-        // For now, just maybe show a success toast or similar (handled in component)
+        fetchContests(); // Refresh contest details so the right side shows added problems
     };
 
     const handleBack = () => {

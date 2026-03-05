@@ -64,6 +64,28 @@ export default function DashboardClient({ initialRole, userId }) {
         return <ContestLeaderboard contest={showLeaderboard} isVolunteer={isVolunteer} onBack={() => setShowLeaderboard(null)} />;
     }
 
+    const ContestSkeleton = () => (
+        <div className="bg-[#111827] border border-[#3B82F6]/10 rounded-2xl p-6 animate-pulse shadow-lg">
+            <div className="flex justify-between items-start mb-4">
+                <div className="h-6 w-3/4 bg-[#1E293B] rounded-lg"></div>
+                <div className="h-6 w-16 bg-[#1E293B] rounded-full"></div>
+            </div>
+            <div className="space-y-3 mb-5">
+                <div className="h-3 w-full bg-[#1E293B] rounded"></div>
+                <div className="h-3 w-5/6 bg-[#1E293B] rounded"></div>
+            </div>
+            <div className="flex flex-col gap-3 mb-6">
+                <div className="h-4 w-1/2 bg-[#1E293B] rounded"></div>
+                <div className="h-4 w-1/2 bg-[#1E293B] rounded"></div>
+                <div className="h-4 w-1/3 bg-[#1E293B] rounded"></div>
+            </div>
+            <div className="flex gap-2 mt-auto">
+                <div className="h-10 flex-1 bg-[#1E293B] rounded-xl"></div>
+                {isVolunteer && <div className="h-10 w-12 bg-[#1E293B] rounded-xl"></div>}
+            </div>
+        </div>
+    );
+
     const ContestCard = ({ contest, status }) => {
         const isRegistered = contest.registeredUsers?.includes(userId);
         const isLive = status === 'live';
@@ -113,10 +135,8 @@ export default function DashboardClient({ initialRole, userId }) {
                         <span className="flex-1 py-2.5 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 font-bold rounded-xl text-center text-sm">✓ Registered</span>
                     )}
                     {isLive && !isVolunteer && (
-                        <Link href={`/contest/${contest._id}`} className="flex-1">
-                            <button className="w-full py-2.5 bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] hover:shadow-lg hover:shadow-[#3B82F6]/30 font-bold rounded-xl text-white text-sm flex items-center justify-center gap-2 transition-all">
-                                <ExternalLink className="w-4 h-4" /> Enter Contest
-                            </button>
+                        <Link href={`/contest/${contest._id}`} className="flex-1 w-full py-2.5 bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] hover:shadow-lg hover:shadow-[#3B82F6]/30 font-bold rounded-xl text-white text-sm flex items-center justify-center gap-2 transition-all">
+                            <ExternalLink className="w-4 h-4" /> Enter Contest
                         </Link>
                     )}
                     {isPast && (
@@ -127,8 +147,8 @@ export default function DashboardClient({ initialRole, userId }) {
 
                     {isVolunteer && (
                         <>
-                            <Link href={`/contest/${contest._id}`} className="flex-1">
-                                <button className="w-full py-2.5 bg-[#1E293B] text-[#94A3B8] hover:text-white hover:bg-[#3B82F6]/10 font-medium rounded-xl transition-all text-sm border border-[#3B82F6]/10">View</button>
+                            <Link href={`/contest/${contest._id}`} className="flex-1 w-full py-2.5 bg-[#1E293B] text-[#94A3B8] hover:text-white hover:bg-[#3B82F6]/10 font-medium rounded-xl transition-all text-sm border border-[#3B82F6]/10 flex items-center justify-center">
+                                View
                             </Link>
                             <button onClick={() => setShowProblemForm(showProblemForm === contest._id ? null : contest._id)} className="py-2.5 px-3 bg-[#1E293B] text-[#94A3B8] hover:text-white hover:bg-[#22D3EE]/10 rounded-xl border border-[#3B82F6]/10 transition-all">
                                 <FileQuestion className="w-4 h-4" />
@@ -176,9 +196,8 @@ export default function DashboardClient({ initialRole, userId }) {
             )}
 
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-[#3B82F6]" />
-                    <span className="text-[#94A3B8] text-sm">Loading contests...</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => <ContestSkeleton key={i} />)}
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -47,12 +47,12 @@ export default function ContestDetailPage({ params: paramsPromise }) {
             setStatus(prevStatus => {
                 if (contest.isEnded || n >= e) {
                     if (prevStatus === 'live') {
-                        window.location.reload();
+                        fetchContestDetails();
                     }
                     return 'past';
                 } else if (n >= s) {
                     if (prevStatus === 'upcoming') {
-                        window.location.reload();
+                        fetchContestDetails();
                     }
                     return 'live';
                 } else {
@@ -217,10 +217,8 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                         >
                             <Trophy className="w-3.5 h-3.5" /> Leaderboard
                         </button>
-                        <Link href="/dashboard">
-                            <button className="text-xs font-medium text-[#94A3B8] hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10">
-                                Exit Contest
-                            </button>
+                        <Link href="/dashboard" className="text-xs font-medium text-[#94A3B8] hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 flex items-center justify-center">
+                            Exit Contest
                         </Link>
                     </div>
                 </div>
@@ -261,10 +259,8 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                                         </div>
                                     </div>
 
-                                    <Link href={`/dashboard/student/contest/${contest._id}/problem/${problem.slug}`}>
-                                        <button className="w-full md:w-auto px-6 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium rounded-lg transition-all shadow-lg shadow-[#3B82F6]/20 flex items-center justify-center gap-2 group-hover:translate-x-1">
-                                            Solve Challenge <ArrowRight className="w-4 h-4" />
-                                        </button>
+                                    <Link href={`/dashboard/student/contest/${contest._id}/problem/${problem.slug}`} className="w-full md:w-auto px-6 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium rounded-lg transition-all shadow-lg shadow-[#3B82F6]/20 flex items-center justify-center gap-2 group-hover:translate-x-1">
+                                        Solve Challenge <ArrowRight className="w-4 h-4" />
                                     </Link>
                                 </div>
                             ))}
