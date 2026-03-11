@@ -26,9 +26,10 @@ async function captureProblem(problemUrl) {
             // Local development
             const fs = require('fs');
             const paths = [
-                'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-                'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-                'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+                '/usr/bin/google-chrome-stable', // Standard Google Chrome
+                '/usr/bin/google-chrome',        // Alternative Google Chrome path
+                '/usr/bin/chromium-browser',     // Standard Chromium
+                '/usr/bin/chromium'              // Alternative Chromium path
             ];
             const browserPath = paths.find(p => fs.existsSync(p)) || paths[0];
             browser = await puppeteer.launch({

@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect, use, useRef, useCallback } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { loader } from '@monaco-editor/react';
 import { Loader2, Play, Send, ArrowLeft, Code2, AlertCircle, Terminal, X, CheckCircle2, XCircle, History, FileText, RefreshCw, Eye, FileInput, FileOutput, Bell, Maximize, Minimize, ExternalLink, Plus, Minus } from 'lucide-react';
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from "react-resizable-panels";
 import Link from 'next/link';
@@ -125,6 +125,8 @@ const ImageViewer = ({ src, alt }) => {
         </div>
     );
 };
+
+loader.config({ paths: { vs: '/monaco/vs' } });
 
 export default function ProblemPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
