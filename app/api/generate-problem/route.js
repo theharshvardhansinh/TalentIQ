@@ -134,11 +134,20 @@ export async function POST(req) {
             // Image-Based Generation (from Screenshot)
             console.log("Generating problem from image URL:", imageUrl);
 
-            const imageResp = await fetch(imageUrl);
-            if (!imageResp.ok) throw new Error("Failed to fetch image from URL");
+            let base64Image;
+            if (imageUrl.startsWith('/uploads/')) {
+                const fs = require('fs');
+                const path = require('path');
+                const filePath = path.join(process.cwd(), imageUrl);
+                const buffer = fs.readFileSync(filePath);
+                base64Image = buffer.toString("base64");
+            } else {
+                const imageResp = await fetch(imageUrl);
+                if (!imageResp.ok) throw new Error("Failed to fetch image from URL");
 
-            const arrayBuffer = await imageResp.arrayBuffer();
-            const base64Image = Buffer.from(arrayBuffer).toString("base64");
+                const arrayBuffer = await imageResp.arrayBuffer();
+                base64Image = Buffer.from(arrayBuffer).toString("base64");
+            }
 
             const prompt = `
                 Analyze this image of a competitive programming problem.

@@ -206,74 +206,71 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
 
         setBotLoading(true);
         try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = async () => {
-                const base64data = reader.result;
-                try {
-                    const res = await fetch('/api/upload-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ imageBase64: base64data })
-                    });
-                    const data = await res.json();
+            const formData = new FormData();
+            formData.append('image', file);
 
-                    if (data.success) {
-                        const currentTitle = formData.title || `Manual Problem Upload`;
-                        const imageMarkdown = `![Problem Screenshot](${data.imageUrl})`;
-                        const newDescription = formData.description
-                            ? `${formData.description}\n\n${imageMarkdown}`
-                            : imageMarkdown;
+            try {
+                const res = await fetch('/api/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
 
-                        let extractedData = {};
-                        try {
-                            const aiPayload = { imageUrl: data.imageUrl, platform: 'custom' };
-                            const aiRes = await fetch('/api/generate-problem', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(aiPayload)
-                            });
-                            const aiData = await aiRes.json();
-                            if (aiData.success && aiData.problem) {
-                                extractedData = aiData.problem;
-                            }
-                        } catch (err) {
-                            console.error("AI Analysis failed:", err);
+                if (data.success) {
+                    const currentTitle = formData.title || `Manual Problem Upload`;
+                    const imageMarkdown = `![Problem Screenshot](${data.imageUrl})`;
+                    const newDescription = formData.description
+                        ? `${formData.description}\n\n${imageMarkdown}`
+                        : imageMarkdown;
+
+                    let extractedData = {};
+                    try {
+                        const aiPayload = { imageUrl: data.imageUrl, platform: 'custom' };
+                        const aiRes = await fetch('/api/generate-problem', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(aiPayload)
+                        });
+                        const aiData = await aiRes.json();
+                        if (aiData.success && aiData.problem) {
+                            extractedData = aiData.problem;
                         }
-
-                        setFormData(prev => ({
-                            ...prev,
-                            title: extractedData.title || prev.title || 'Extracted Problem',
-                            description: newDescription,
-                            difficulty: extractedData.difficulty || 'Medium',
-                            constraints: extractedData.constraints || '',
-                            tags: Array.isArray(extractedData.tags) ? extractedData.tags.join(', ') : '',
-                            inputFormat: extractedData.inputFormat || '',
-                            outputFormat: extractedData.outputFormat || '',
-                            starterCode: extractedData.starterCode || { cpp: '', java: '', python: '', javascript: '' },
-                            driverCode: extractedData.driverCode || { cpp: '', java: '', python: '', javascript: '' }
-                        }));
-
-                        if (extractedData.testCases) {
-                            setTestCases(extractedData.testCases);
-                        }
-
-                        setDescTab('preview');
-                        toast.success("Screenshot uploaded and analyzed by AI!");
-                    } else {
-                        toast.error(data.error || "Failed to upload screenshot.");
+                    } catch (err) {
+                        console.error("AI Analysis failed:", err);
                     }
-                } catch (apiErr) {
-                    console.error("API Error:", apiErr);
-                    toast.error("Failed to process image.");
-                } finally {
-                    setBotLoading(false);
-                    e.target.value = null; // reset file input
+
+                    setFormData(prev => ({
+                        ...prev,
+                        title: extractedData.title || prev.title || 'Extracted Problem',
+                        description: newDescription,
+                        difficulty: extractedData.difficulty || 'Medium',
+                        constraints: extractedData.constraints || '',
+                        tags: Array.isArray(extractedData.tags) ? extractedData.tags.join(', ') : '',
+                        inputFormat: extractedData.inputFormat || '',
+                        outputFormat: extractedData.outputFormat || '',
+                        starterCode: extractedData.starterCode || { cpp: '', java: '', python: '', javascript: '' },
+                        driverCode: extractedData.driverCode || { cpp: '', java: '', python: '', javascript: '' }
+                    }));
+
+                    if (extractedData.testCases) {
+                        setTestCases(extractedData.testCases);
+                    }
+
+                    setDescTab('preview');
+                    toast.success("Screenshot uploaded and analyzed by AI!");
+                } else {
+                    toast.error(data.error || "Failed to upload screenshot.");
                 }
-            };
+            } catch (apiErr) {
+                console.error("API Error:", apiErr);
+                toast.error("Failed to process image.");
+            } finally {
+                setBotLoading(false);
+                e.target.value = null; // reset file input
+            }
         } catch (error) {
             console.error("Upload Error:", error);
-            toast.error("Failed to read file.");
+            toast.error("Failed to upload file.");
             setBotLoading(false);
         }
     };

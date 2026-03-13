@@ -1,14 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
-import ImageKit from 'imagekit';
 
-// Initialize ImageKit
-const imagekit = new ImageKit({
-    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
-});
 
 async function captureProblem(problemUrl) {
     console.log(`🤖 Bot starting for: ${problemUrl}`);
@@ -224,29 +217,26 @@ export async function POST(req) {
             return NextResponse.json({ error: "Failed to capture screenshot: " + botError.message }, { status: 500 });
         }
 
-        console.log("🚀 Uploading to ImageKit...");
+        console.log("🚀 Saving to local uploads folder...");
 
-        // Upload to ImageKit
-        const uploadResponse = await new Promise((resolve, reject) => {
-            imagekit.upload({
-                file: imageBuffer,
-                fileName: `problem-${Date.now()}.png`,
-                folder: "/codearena_problems"
-            }, (error, result) => {
-                if (error) {
-                    console.error("ImageKit Upload Error:", error);
-                    reject(error);
-                }
-                else resolve(result);
-            });
-        });
+        const fs = require('fs');
+        const path = require('path');
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const fileName = `problem-${Date.now()}.png`;
+        const filePath = path.join(uploadsDir, fileName);
+        fs.writeFileSync(filePath, imageBuffer);
 
-        console.log(`✅ Done! URL: ${uploadResponse.url}`);
+        const imageUrl = `/uploads/${fileName}`;
+
+        console.log(`✅ Done! URL: ${imageUrl}`);
 
         return NextResponse.json({
             success: true,
-            imageUrl: uploadResponse.url,
-            thumbnailUrl: uploadResponse.thumbnailUrl,
+            imageUrl: imageUrl,
+            thumbnailUrl: imageUrl,
             originalProblemUrl: url
         });
 
