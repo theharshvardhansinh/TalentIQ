@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import TopCreatorsBar from '@/app/components/TopCreatorsBar';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -50,9 +51,11 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#0A0E1A] p-4 relative overflow-hidden">
-            <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#3B82F6]/10 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-[#22D3EE]/8 rounded-full blur-[100px] pointer-events-none" />
+        <div className="min-h-screen w-full flex flex-col justify-between bg-[#0A0E1A] relative overflow-hidden">
+            <TopCreatorsBar />
+            <div className="flex-1 flex items-center justify-center p-4 relative z-10">
+                <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#3B82F6]/10 rounded-full blur-[120px] pointer-events-none" />
+                <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-[#22D3EE]/8 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-md bg-[#111827]/80 backdrop-blur-xl border border-[#3B82F6]/10 rounded-2xl shadow-2xl p-8 relative z-10">
 
@@ -148,6 +151,7 @@ export default function LoginPage() {
                     </Link>
                 </p>
             </div>
+        </div>
         </div>
     );
 }

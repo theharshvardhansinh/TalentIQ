@@ -9,7 +9,7 @@ import {
 
 export default function Hero({ sessionUser }) {
   return (
-    <section className="relative pt-32 pb-12 lg:pt-48 lg:pb-20 px-6">
+    <section className="relative pt-44 pb-12 lg:pt-52 lg:pb-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}

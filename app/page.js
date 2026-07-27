@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import Hero from './components/home/Hero';
 import Features from './components/home/Features';
 import Footer from './components/home/Footer';
+import TopCreatorsBar from './components/TopCreatorsBar';
 
 export const metadata = {
   title: 'Talent IQ - Computer Department Contest Platform',
@@ -27,19 +28,19 @@ export default async function Home() {
 
       {/* Navbar */}
       <nav className="fixed w-full z-50 glass-nav transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
               <div className="absolute inset-0 bg-primary/50 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-xl tracking-tight text-white group-hover:text-primary transition-colors">
+              <span className="font-bold text-lg tracking-tight text-white group-hover:text-primary transition-colors">
                 Talent IQ
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
+              <span className="text-[9px] uppercase tracking-widest text-slate-400 font-semibold">
                 Department Portal
               </span>
             </div>
@@ -70,6 +71,7 @@ export default async function Home() {
             )}
           </div>
         </div>
+        <TopCreatorsBar />
       </nav>
 
       <Hero sessionUser={sessionUser} />
