@@ -25,10 +25,16 @@ export async function GET(req, { params }) {
             return NextResponse.json({ error: 'Contest not found' }, { status: 404 });
         }
 
+        const isStudent = session.user.role === 'student';
+        const hasExited = contest.exitedUsers && contest.exitedUsers.some(u => u.toString() === session.user.id.toString());
+
+        if (isStudent && hasExited) {
+            return NextResponse.json({ error: 'You have exited this contest and cannot rejoin.' }, { status: 403 });
+        }
+
         const now = new Date();
         const startTime = new Date(contest.startTime);
         const endTime = new Date(contest.endTime);
-        const isStudent = session.user.role === 'student';
         const isUpcoming = now < startTime;
         const isEnded = now >= endTime;
 

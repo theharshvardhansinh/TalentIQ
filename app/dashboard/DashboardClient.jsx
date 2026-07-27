@@ -5,6 +5,7 @@ import Link from 'next/link';
 import CreateContestForm from '@/app/components/CreateContestForm';
 import AddProblemForm from '@/app/components/AddProblemForm';
 import ContestLeaderboard from '@/app/components/ContestLeaderboard';
+import { toast } from 'sonner';
 
 export default function DashboardClient({ initialRole, userId }) {
     const [contests, setContests] = useState([]);
@@ -51,9 +52,10 @@ export default function DashboardClient({ initialRole, userId }) {
             });
             const data = await res.json();
             if (data.success) {
+                toast.success('Successfully registered!');
                 fetchContests();
             } else {
-                alert(data.error || 'Failed to register');
+                toast.error(data.error || 'Failed to register');
             }
         } catch (error) {
             console.error('Registration failed:', error);
@@ -87,10 +89,11 @@ export default function DashboardClient({ initialRole, userId }) {
     );
 
     const ContestCard = ({ contest, status }) => {
-        const isRegistered = contest.registeredUsers?.includes(userId);
         const isLive = status === 'live';
         const isUpcoming = status === 'upcoming';
         const isPast = status === 'past';
+        const isRegistered = contest.registeredUsers?.some(id => (id._id || id).toString() === userId);
+        const hasExited = contest.hasExited || (Array.isArray(contest.exitedUsers) && contest.exitedUsers.some(id => (id._id || id).toString() === userId));
 
         return (
             <div className={`relative group bg-[#111827] border border-[#3B82F6]/8 rounded-2xl p-6 transition-all hover:border-[#3B82F6]/20 hover:-translate-y-1 hover:shadow-xl ${isLive ? 'shadow-[#22D3EE]/10 border-[#22D3EE]/20' : ''}`}>
@@ -128,16 +131,27 @@ export default function DashboardClient({ initialRole, userId }) {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-auto">
-                    {!isVolunteer && isUpcoming && !isRegistered && (
-                        <button onClick={() => handleRegister(contest._id)} className="flex-1 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#3B82F6]/20 text-sm">Register</button>
-                    )}
-                    {!isVolunteer && isUpcoming && isRegistered && (
-                        <span className="flex-1 py-2.5 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 font-bold rounded-xl text-center text-sm">✓ Registered</span>
-                    )}
-                    {isLive && !isVolunteer && (
-                        <Link href={`/contest/${contest._id}`} className="flex-1 w-full py-2.5 bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] hover:shadow-lg hover:shadow-[#3B82F6]/30 font-bold rounded-xl text-white text-sm flex items-center justify-center gap-2 transition-all">
-                            <ExternalLink className="w-4 h-4" /> Enter Contest
-                        </Link>
+                    {!isVolunteer && hasExited ? (
+                        <button
+                            onClick={() => toast.error("You have exited this contest and cannot rejoin.")}
+                            className="flex-1 w-full py-2.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold rounded-xl text-center text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                        >
+                            Exited Contest
+                        </button>
+                    ) : (
+                        <>
+                            {!isVolunteer && isUpcoming && !isRegistered && (
+                                <button onClick={() => handleRegister(contest._id)} className="flex-1 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#3B82F6]/20 text-sm">Register</button>
+                            )}
+                            {!isVolunteer && isUpcoming && isRegistered && (
+                                <span className="flex-1 py-2.5 bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 font-bold rounded-xl text-center text-sm">✓ Registered</span>
+                            )}
+                            {isLive && !isVolunteer && (
+                                <Link href={`/contest/${contest._id}`} className="flex-1 w-full py-2.5 bg-gradient-to-r from-[#3B82F6] to-[#22D3EE] hover:shadow-lg hover:shadow-[#3B82F6]/30 font-bold rounded-xl text-white text-sm flex items-center justify-center gap-2 transition-all">
+                                    <ExternalLink className="w-4 h-4" /> Enter Contest
+                                </Link>
+                            )}
+                        </>
                     )}
                     {isPast && (
                         <button onClick={() => setShowLeaderboard(contest)} className="flex-1 py-2.5 bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20 hover:bg-[#F59E0B]/20 font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2">

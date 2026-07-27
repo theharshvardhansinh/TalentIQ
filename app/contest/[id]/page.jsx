@@ -13,6 +13,8 @@ export default function ContestDetailPage({ params: paramsPromise }) {
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState('loading');
     const [showLeaderboard, setShowLeaderboard] = useState(false);
+    const [exitedError, setExitedError] = useState('');
+    const [exiting, setExiting] = useState(false);
 
     const QUOTES = [
         "Practice is the price of mastery.",
@@ -69,6 +71,10 @@ export default function ContestDetailPage({ params: paramsPromise }) {
         try {
             const res = await fetch(`/api/contest/${params.id}/view`);
             const data = await res.json();
+            if (res.status === 403 || data.error === 'You have exited this contest and cannot rejoin.') {
+                setExitedError(data.error || 'You have exited this contest and cannot rejoin.');
+                return;
+            }
             if (data.success) {
                 setContest(data.data);
                 if (data.data.isEnded) {
@@ -82,6 +88,27 @@ export default function ContestDetailPage({ params: paramsPromise }) {
         }
     };
 
+    const handleExitContest = async () => {
+        if (!confirm("Are you sure you want to exit the contest? You will not be able to rejoin this contest.")) {
+            return;
+        }
+        setExiting(true);
+        try {
+            const res = await fetch(`/api/contest/${params.id}/exit`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                window.location.href = '/dashboard';
+            } else {
+                alert(data.error || 'Failed to exit contest');
+            }
+        } catch (error) {
+            console.error('Exit contest error', error);
+            alert('Failed to exit contest');
+        } finally {
+            setExiting(false);
+        }
+    };
+
     const getDifficultyColor = (diff) => {
         switch (diff?.toLowerCase()) {
             case 'easy': return 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20';
@@ -90,6 +117,25 @@ export default function ContestDetailPage({ params: paramsPromise }) {
             default: return 'text-[#94A3B8]/40 bg-[#1E293B]';
         }
     };
+
+    if (exitedError) {
+        return (
+            <div className="min-h-screen bg-[#0A0E1A] text-white flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-[#111827] border border-rose-500/30 rounded-2xl p-8 text-center space-y-6 shadow-2xl">
+                    <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center mx-auto text-rose-500">
+                        <AlertCircle className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-bold text-white">Access Denied</h2>
+                        <p className="text-rose-400 font-medium text-sm">{exitedError}</p>
+                    </div>
+                    <Link href="/dashboard" className="inline-flex items-center justify-center w-full py-3 bg-[#1E293B] hover:bg-[#334155] text-white font-semibold rounded-xl transition-all border border-white/10">
+                        Return to Dashboard
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -217,9 +263,14 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                         >
                             <Trophy className="w-3.5 h-3.5" /> Leaderboard
                         </button>
-                        <Link href="/dashboard" className="text-xs font-medium text-[#94A3B8] hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 flex items-center justify-center">
+                        <button
+                            onClick={handleExitContest}
+                            disabled={exiting}
+                            className="text-xs font-medium text-rose-400 hover:text-white hover:bg-rose-500/20 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                        >
+                            {exiting ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                             Exit Contest
-                        </Link>
+                        </button>
                     </div>
                 </div>
             </div>

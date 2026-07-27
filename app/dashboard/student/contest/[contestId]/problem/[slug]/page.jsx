@@ -140,6 +140,7 @@ export default function ProblemPage({ params: paramsPromise }) {
     const [contest, setContest] = useState(null);
     const [contestEnded, setContestEnded] = useState(false);
     const [endedBannerDismissed, setEndedBannerDismissed] = useState(false);
+    const [exitedError, setExitedError] = useState('');
 
     // Tabs & History
     const [leftPanelTab, setLeftPanelTab] = useState('description'); // 'description' | 'submissions'
@@ -189,6 +190,10 @@ export default function ProblemPage({ params: paramsPromise }) {
         try {
             const res = await fetch(`/api/contest/${params.contestId}/view`);
             const data = await res.json();
+            if (res.status === 403 || data.error === 'You have exited this contest and cannot rejoin.') {
+                setExitedError(data.error || 'You have exited this contest and cannot rejoin.');
+                return;
+            }
             if (data.success) {
                 setContest(data.data);
                 // If already ended, mark immediately
@@ -335,7 +340,8 @@ export default function ProblemPage({ params: paramsPromise }) {
                 body: JSON.stringify({
                     problemSlug: params.slug,
                     code,
-                    language
+                    language,
+                    contestId: params.contestId
                 })
             });
             const data = await res.json();
@@ -394,6 +400,20 @@ export default function ProblemPage({ params: paramsPromise }) {
         return (
             <div className="h-screen bg-black flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (exitedError) {
+        return (
+            <div className="h-screen bg-[#0A0E1A] flex flex-col items-center justify-center text-white p-6">
+                <div className="max-w-md w-full bg-[#111827] border border-rose-500/30 rounded-2xl p-8 text-center space-y-6 shadow-2xl">
+                    <h1 className="text-2xl font-bold text-rose-500">Access Denied</h1>
+                    <p className="text-rose-300">{exitedError}</p>
+                    <Link href="/dashboard" className="inline-block px-6 py-2.5 bg-[#1E293B] hover:bg-[#334155] text-white font-semibold rounded-xl transition-all border border-white/10">
+                        Return to Dashboard
+                    </Link>
+                </div>
             </div>
         );
     }

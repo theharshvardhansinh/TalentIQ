@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Problem from '@/models/Problem';
+import Contest from '@/models/Contest';
 import { getSession } from '@/lib/auth';
 
 const JUDGE0_URL = process.env.JUDGE0_URL || 'http://localhost:2358';
@@ -37,13 +38,20 @@ export async function POST(req) {
         }
 
         const body = await req.json();
-        const { problemSlug, code, language } = body;
+        const { problemSlug, code, language, contestId } = body;
 
         if (!problemSlug || !code || !language) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
 
         await dbConnect();
+
+        if (contestId && session.user.role === 'student') {
+            const contest = await Contest.findById(contestId);
+            if (contest && contest.exitedUsers && contest.exitedUsers.some(u => u.toString() === session.user.id.toString())) {
+                return NextResponse.json({ error: 'You have exited this contest and cannot rejoin.' }, { status: 403 });
+            }
+        }
 
         const problem = await Problem.findOne({ slug: problemSlug });
         if (!problem) {

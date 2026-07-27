@@ -48,6 +48,11 @@ const ContestSchema = new mongoose.Schema({
         ref: 'User',
         default: []
     }],
+    exitedUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: []
+    }],
 }, { timestamps: true });
 
 export default mongoose.models.Contest || mongoose.model('Contest', ContestSchema);

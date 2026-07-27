@@ -24,6 +24,11 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Contest not found' }, { status: 404 });
         }
 
+        const hasExited = contest.exitedUsers && contest.exitedUsers.some(u => u.toString() === userId.toString());
+        if (hasExited) {
+            return NextResponse.json({ error: 'You have exited this contest and cannot rejoin.' }, { status: 403 });
+        }
+
         // Check if contest is upcoming (allow registration only if not ended? or strict regarding start time?)
         // Prompt says "Check if the contest is "Upcoming" (cannot register for ended contests)."
         // Usually, registration should be allowed before end time.

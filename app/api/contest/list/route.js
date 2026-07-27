@@ -39,9 +39,15 @@ export async function GET() {
             }).sort({ endTime: -1 }).lean()
         ]);
 
+        const userIdStr = session.user.id.toString();
+        const mapContest = (c) => ({
+            ...c,
+            hasExited: Array.isArray(c.exitedUsers) && c.exitedUsers.some(u => u.toString() === userIdStr)
+        });
+
         return NextResponse.json({
             success: true,
-            data: [...live, ...upcoming, ...past]
+            data: [...live, ...upcoming, ...past].map(mapContest)
         });
 
     } catch (error) {
