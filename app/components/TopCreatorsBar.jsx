@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Heart, Code2 } from 'lucide-react';
+import { Heart, Code2 } from 'lucide-react';
 
 export default function TopCreatorsBar() {
   return (
@@ -29,12 +29,6 @@ export default function TopCreatorsBar() {
           <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 hover:from-cyan-300 hover:to-blue-400 transition-all hover:scale-105 cursor-default shadow-sm">
             Vrund Patel
           </span>
-        </div>
-
-        {/* Motto Badge */}
-        <div className="hidden xl:inline-flex items-center gap-1.5 pl-3 border-l border-white/15 text-xs text-cyan-300/80 italic font-medium">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>"Empowering the coding culture of BVM"</span>
         </div>
       </div>
     </div>
