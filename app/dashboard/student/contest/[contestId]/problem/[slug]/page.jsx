@@ -159,6 +159,7 @@ export default function ProblemPage({ params: paramsPromise }) {
     const LANG_KEY = `autosave_lang_${params.contestId}_${params.slug}`;
 
     const templates = {
+        c: `// Write your C code here\n#include <stdio.h>\n\nint main() {\n    // your code goes here\n    return 0;\n}`,
         cpp: `// Write your C++ code here\n#include <iostream>\nusing namespace std;\n\nint main() {\n    // your code goes here\n    return 0;\n}`,
         java: `// Write your Java code here\npublic class Main {\n    public static void main(String[] args) {\n        // your code goes here\n    }\n}`,
         python: `# Write your Python code here\n\ndef solve():\n    # your code goes here\n    pass\n\nif __name__ == "__main__":\n    solve()`,
@@ -452,6 +453,7 @@ export default function ProblemPage({ params: paramsPromise }) {
                         onChange={(e) => handleLanguageChange(e.target.value)}
                         className="bg-slate-800 text-sm border border-white/10 rounded px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                     >
+                        <option value="c">C</option>
                         <option value="cpp">C++</option>
                         <option value="java">Java</option>
                         <option value="python">Python</option>

@@ -257,12 +257,14 @@ export async function POST(req) {
                             { "input": "...", "output": "...", "isPublic": false }
                         ],
                         "starterCode": {
+                            "c": "int solve(...) {\\n    // ...\\n}",
                             "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
                             "java": "class Solution {\\n    // ...\\n}",
                             "python": "class Solution:\\n    def solve(self, ...):",
                             "javascript": "var solve = function(...) {"
                         },
                         "driverCode": {
+                            "c": "#include <stdio.h>\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call solve, print */ return 0; }",
                             "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
                             "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
                             "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",

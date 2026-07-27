@@ -42,12 +42,14 @@ const ProblemSchema = new mongoose.Schema({
         trim: true,
     }],
     starterCode: {
+        c: { type: String, default: '' },
         cpp: { type: String, default: '' },
         java: { type: String, default: '' },
         python: { type: String, default: '' },
         javascript: { type: String, default: '' },
     },
     driverCode: {
+        c: { type: String, default: '' },
         cpp: { type: String, default: '' },
         java: { type: String, default: '' },
         python: { type: String, default: '' },

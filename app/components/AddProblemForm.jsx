@@ -17,12 +17,14 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
         inputFormat: '',
         outputFormat: '',
         starterCode: {
+            c: '',
             cpp: '',
             java: '',
             python: '',
             javascript: ''
         },
         driverCode: {
+            c: '',
             cpp: '',
             java: '',
             python: '',
@@ -125,8 +127,8 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     tags: Array.isArray(extractedData.tags) ? extractedData.tags.join(', ') : '',
                     inputFormat: extractedData.inputFormat || '',
                     outputFormat: extractedData.outputFormat || '',
-                    starterCode: extractedData.starterCode || { cpp: '', java: '', python: '', javascript: '' },
-                    driverCode: extractedData.driverCode || { cpp: '', java: '', python: '', javascript: '' }
+                    starterCode: extractedData.starterCode || { c: '', cpp: '', java: '', python: '', javascript: '' },
+                    driverCode: extractedData.driverCode || { c: '', cpp: '', java: '', python: '', javascript: '' }
                 }));
 
                 if (extractedData.testCases) {
@@ -173,8 +175,8 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     tags: problem.tags ? (Array.isArray(problem.tags) ? problem.tags.join(', ') : problem.tags) : 'CodeChef',
                     inputFormat: problem.inputFormat || '',
                     outputFormat: problem.outputFormat || '',
-                    starterCode: problem.starterCode || { cpp: '', java: '', python: '', javascript: '' },
-                    driverCode: problem.driverCode || { cpp: '', java: '', python: '', javascript: '' }
+                    starterCode: problem.starterCode || { c: '', cpp: '', java: '', python: '', javascript: '' },
+                    driverCode: problem.driverCode || { c: '', cpp: '', java: '', python: '', javascript: '' }
                 }));
 
                 // Heuristic for difficulty if available in tags
@@ -248,8 +250,8 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                         tags: Array.isArray(extractedData.tags) ? extractedData.tags.join(', ') : '',
                         inputFormat: extractedData.inputFormat || '',
                         outputFormat: extractedData.outputFormat || '',
-                        starterCode: extractedData.starterCode || { cpp: '', java: '', python: '', javascript: '' },
-                        driverCode: extractedData.driverCode || { cpp: '', java: '', python: '', javascript: '' }
+                        starterCode: extractedData.starterCode || { c: '', cpp: '', java: '', python: '', javascript: '' },
+                        driverCode: extractedData.driverCode || { c: '', cpp: '', java: '', python: '', javascript: '' }
                     }));
 
                     if (extractedData.testCases) {
@@ -308,8 +310,8 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                     tags: Array.isArray(problem.tags) ? problem.tags.join(', ') : '',
                     inputFormat: problem.inputFormat || '',
                     outputFormat: problem.outputFormat || '',
-                    starterCode: problem.starterCode || { cpp: '', java: '', python: '', javascript: '' },
-                    driverCode: problem.driverCode || { cpp: '', java: '', python: '', javascript: '' }
+                    starterCode: problem.starterCode || { c: '', cpp: '', java: '', python: '', javascript: '' },
+                    driverCode: problem.driverCode || { c: '', cpp: '', java: '', python: '', javascript: '' }
                 });
                 if (problem.testCases) {
                     setTestCases(problem.testCases);
@@ -335,8 +337,8 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : (initialData.tags || ''),
                 inputFormat: initialData.inputFormat || '',
                 outputFormat: initialData.outputFormat || '',
-                starterCode: initialData.starterCode || { cpp: '', java: '', python: '', javascript: '' },
-                driverCode: initialData.driverCode || { cpp: '', java: '', python: '', javascript: '' }
+                starterCode: initialData.starterCode || { c: '', cpp: '', java: '', python: '', javascript: '' },
+                driverCode: initialData.driverCode || { c: '', cpp: '', java: '', python: '', javascript: '' }
             });
             if (initialData.testCases && initialData.testCases.length > 0) {
                 setTestCases(initialData.testCases);
@@ -427,8 +429,8 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                         tags: '',
                         inputFormat: '',
                         outputFormat: '',
-                        starterCode: { cpp: '', java: '', python: '', javascript: '' },
-                        driverCode: { cpp: '', java: '', python: '', javascript: '' }
+                        starterCode: { c: '', cpp: '', java: '', python: '', javascript: '' },
+                        driverCode: { c: '', cpp: '', java: '', python: '', javascript: '' }
                     });
                     setTestCases([{ input: '', output: '', isPublic: false }]);
                     setAiPrompt('');
@@ -724,14 +726,14 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 <h4 className="font-semibold text-[#E2E8F0] mb-4">Starter Code Templates</h4>
                 <div className="bg-[#1E293B] rounded-lg border border-[#3B82F6]/10 overflow-hidden mb-6">
                     <div className="flex border-b border-[#3B82F6]/10">
-                        {['cpp', 'java', 'python', 'javascript'].map((lang) => (
+                        {['c', 'cpp', 'java', 'python', 'javascript'].map((lang) => (
                             <button
                                 key={lang}
                                 type="button"
                                 onClick={() => setActiveTab(lang)}
                                 className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === lang ? 'bg-[#3B82F6]/10 text-[#3B82F6] border-b-2 border-[#3B82F6]' : 'text-[#94A3B8] hover:text-white'}`}
                             >
-                                {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
+                                {lang === 'cpp' ? 'C++' : lang === 'c' ? 'C' : lang.charAt(0).toUpperCase() + lang.slice(1)}
                             </button>
                         ))}
                     </div>
@@ -751,14 +753,14 @@ export default function AddProblemForm({ contestId, onSuccess, initialData = nul
                 <h4 className="font-semibold text-[#E2E8F0] mb-4">Hidden Driver Code (Main execution parsing inputs)</h4>
                 <div className="bg-[#1E293B] rounded-lg border border-[#3B82F6]/10 overflow-hidden mb-6">
                     <div className="flex border-b border-[#3B82F6]/10 bg-[#0A0E1A]">
-                        {['cpp', 'java', 'python', 'javascript'].map((lang) => (
+                        {['c', 'cpp', 'java', 'python', 'javascript'].map((lang) => (
                             <button
                                 key={lang}
                                 type="button"
                                 onClick={() => setActiveTab(lang)}
                                 className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === lang ? 'bg-[#3B82F6]/10 text-[#3B82F6] border-b-2 border-[#3B82F6]' : 'text-[#94A3B8] hover:text-white'}`}
                             >
-                                {lang === 'cpp' ? 'C++' : lang.charAt(0).toUpperCase() + lang.slice(1)}
+                                {lang === 'cpp' ? 'C++' : lang === 'c' ? 'C' : lang.charAt(0).toUpperCase() + lang.slice(1)}
                             </button>
                         ))}
                     </div>
