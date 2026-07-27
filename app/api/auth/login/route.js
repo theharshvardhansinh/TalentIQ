@@ -5,7 +5,6 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import redis from '@/lib/redis';
 
 export async function POST(req) {
     try {
@@ -75,14 +74,7 @@ export async function POST(req) {
             { expiresIn: '7d' }
         );
 
-        // Store refresh token in Redis (valid for 7 days)
-        try {
-            await redis.set(`refresh_token:${user._id}`, refreshToken, { ex: 7 * 24 * 60 * 60 });
-        } catch (redisError) {
-            console.error('Redis error:', redisError);
-            // Continue login even if Redis fails? Or fail? 
-            // Failing is safer if we depend on it, but for now let's log.
-        }
+
 
         const response = NextResponse.json({
             message: 'Login successful',
