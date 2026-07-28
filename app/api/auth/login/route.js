@@ -61,6 +61,8 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
         }
 
+        console.log(`${user.name} login time: ${new Date().toLocaleString()}`);
+
         const token = jwt.sign(
             { userId: user._id, email: user.email, role: user.role || 'student' },
             process.env.JWT_SECRET,

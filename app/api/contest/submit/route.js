@@ -116,8 +116,7 @@ export async function POST(req) {
         // 3. Execute All
         const judgeResults = await Promise.all(submissionPromises);
 
-        // Debug logging
-        console.log('Judge0 Parallel Results (Base64):', JSON.stringify(judgeResults, null, 2));
+        // Debug logging removed, printing summary after processing
 
         // 4. Process Results
         let passedCount = 0;
@@ -198,6 +197,8 @@ export async function POST(req) {
             status: finalStatus,
             contestId: contestId || null
         });
+
+        console.log(`${session.user.name || session.user.email} : ${passedCount}/${problem.testCases.length} or ${finalStatus.toLowerCase()} submission`);
 
         return NextResponse.json({
             status: finalStatus,
