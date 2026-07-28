@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import {
     Trophy, Loader2, ArrowLeft, Search, Mail, CheckCircle2,
     AlertCircle, Users, BookOpen, BarChart2,
-    ChevronDown, ChevronUp, CheckCheck, X as XIcon
+    ChevronDown, ChevronUp, CheckCheck, X as XIcon, Eye, Download
 } from 'lucide-react';
 
 export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
@@ -72,77 +72,140 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
         return data;
     }, [leaderboard, searchTerm, sortField, sortDir]);
 
+    const [previewModalData, setPreviewModalData] = useState(null);
+
     // ── Certificate PNG generation helpers ──────────────────────────────────
 
-    /** Builds inline-styled HTML for one certificate (html2canvas-friendly). */
+    /** Builds inline-styled HTML for one official certificate (html2canvas-friendly). */
     const buildCertificateHTML = (studentName, contestTitle, rank, date) => {
-        const rankLabels = { 1: '1st Place 🥇', 2: '2nd Place 🥈', 3: '3rd Place 🥉' };
-        const rankColors = { 1: '#F59E0B', 2: '#94A3B8', 3: '#CD7F32' };
-        const rankGrad = {
-            1: 'linear-gradient(135deg,#F59E0B,#D97706)',
-            2: 'linear-gradient(135deg,#94A3B8,#64748B)',
-            3: 'linear-gradient(135deg,#CD7F32,#A0522D)',
-        };
+        const rankLabel = rank === 1 ? '1st Position' : rank === 2 ? '2nd Position' : rank === 3 ? '3rd Position' : `${rank}th Position`;
+        const sealText = rank === 1 ? 'GOLD MEDAL' : rank === 2 ? 'SILVER MEDAL' : rank === 3 ? 'BRONZE MEDAL' : 'MERIT AWARD';
+        const certType = rank === 1 ? 'CERTIFICATE OF EXCELLENCE' : 'CERTIFICATE OF MERIT';
+
         return `
-        <div style="width:620px;background:#0A0E1A;padding:40px 30px;font-family:'Segoe UI',Arial,sans-serif;box-sizing:border-box;">
-          <!-- header -->
-          <div style="text-align:center;margin-bottom:28px;">
-            <div style="font-size:26px;font-weight:800;color:#3B82F6;letter-spacing:2px;">⚡ TALENT IQ</div>
-            <div style="font-size:10px;color:#64748B;letter-spacing:5px;margin-top:4px;">DEPARTMENT CODING PLATFORM</div>
-          </div>
-          <!-- card -->
-          <div style="background:linear-gradient(145deg,#111827,#1E293B);border:1px solid rgba(59,130,246,0.2);border-radius:16px;overflow:hidden;">
-            <div style="height:5px;background:${rankGrad[rank]};"></div>
-            <div style="padding:40px 36px;">
-              <!-- title -->
-              <div style="text-align:center;margin-bottom:26px;">
-                <div style="font-size:11px;color:#64748B;letter-spacing:6px;text-transform:uppercase;margin-bottom:10px;">Certificate of Achievement</div>
-                <div style="width:60px;height:2px;background:${rankGrad[rank]};margin:0 auto;"></div>
+        <div style="width: 860px; padding: 24px; background: #0b1120; font-family: 'Segoe UI', Georgia, serif; box-sizing: border-box;">
+          <div style="background: #FFFDF9; border: 10px solid #0F172A; padding: 32px 28px 28px 28px; position: relative; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); box-sizing: border-box; overflow: hidden;">
+            
+            <!-- Inner Decorative Gold Border Frame -->
+            <div style="border: 2px solid #C5A059; padding: 28px 24px 24px 24px; position: relative; background: #FFFDF9;">
+
+              <!-- Watermark Background Crest -->
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; pointer-events: none; text-align: center; width: 100%;">
+                <svg width="340" height="340" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="100" cy="100" r="90" stroke="#0F172A" stroke-width="4" stroke-dasharray="8 4"/>
+                  <circle cx="100" cy="100" r="75" stroke="#0F172A" stroke-width="2"/>
+                  <path d="M100 25 L120 70 L170 70 L130 100 L145 150 L100 120 L55 150 L70 100 L30 70 L80 70 Z" fill="#0F172A"/>
+                </svg>
               </div>
-              <!-- rank badge -->
-              <div style="text-align:center;margin-bottom:22px;">
-                <span style="display:inline-block;background:${rankGrad[rank]};color:#0A0E1A;font-size:16px;font-weight:800;padding:10px 30px;border-radius:50px;letter-spacing:1px;">
-                  ${rankLabels[rank]}
-                </span>
+
+              <!-- Corner Ornaments (Gold SVGs - aligned flush with inner border) -->
+              <div style="position: absolute; top: 2px; left: 2px; width: 32px; height: 32px;">
+                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
               </div>
-              <!-- name -->
-              <div style="text-align:center;margin-bottom:22px;">
-                <div style="font-size:13px;color:#94A3B8;margin-bottom:10px;">This is to certify that</div>
-                <div style="font-size:34px;font-weight:900;color:#FFFFFF;letter-spacing:0.5px;line-height:1.2;">${studentName}</div>
-                <div style="font-size:13px;color:#94A3B8;margin-top:12px;line-height:1.8;">
-                  has demonstrated outstanding coding skills and secured
-                  <span style="color:${rankColors[rank]};font-weight:700;"> ${rankLabels[rank]}</span>
-                  in the coding contest
+              <div style="position: absolute; top: 2px; right: 2px; width: 32px; height: 32px; transform: scaleX(-1);">
+                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
+              </div>
+              <div style="position: absolute; bottom: 2px; left: 2px; width: 32px; height: 32px; transform: scaleY(-1);">
+                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
+              </div>
+              <div style="position: absolute; bottom: 2px; right: 2px; width: 32px; height: 32px; transform: scale(-1);">
+                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
+              </div>
+
+              <!-- Header Section -->
+              <div style="text-align: center; margin-bottom: 14px; position: relative; z-index: 2;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 6px;">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  <span style="font-family: Georgia, serif; font-size: 23px; font-weight: 800; color: #0F172A; letter-spacing: 2.5px; text-transform: uppercase;">
+                    COMPUTER SOCIETY OF INDIA
+                  </span>
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </div>
+
+                <div style="font-family: 'Segoe UI', sans-serif; font-size: 13px; font-weight: 800; color: #B45309; letter-spacing: 4px; text-transform: uppercase; margin-top: 2px;">
+                  BVM STUDENT CHAPTER
+                </div>
+                <div style="font-family: 'Segoe UI', sans-serif; font-size: 11px; font-weight: 600; color: #475569; letter-spacing: 1px; margin-top: 3px;">
+                  Birla Vishvakarma Mahavidyalaya Engineering College (An Autonomous Institution)
+                </div>
+                <div style="font-family: 'Segoe UI', sans-serif; font-size: 10.5px; color: #64748B; margin-top: 2px;">
+                  TalentIQ Platform
                 </div>
               </div>
-              <!-- contest box -->
-              <div style="text-align:center;margin:22px 0;padding:18px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);border-radius:10px;">
-                <div style="font-size:10px;color:#64748B;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;">Contest</div>
-                <div style="font-size:20px;font-weight:700;color:#3B82F6;">${contestTitle}</div>
+
+              <!-- Divider Motif -->
+              <div style="text-align: center; margin: 12px 0 18px 0; position: relative;">
+                <div style="height: 1px; background: linear-gradient(90deg, transparent 5%, #C5A059 50%, transparent 95%); width: 75%; margin: 0 auto;"></div>
+                <span style="position: absolute; top: -7px; left: 50%; transform: translateX(-50%); background: #FFFDF9; padding: 0 8px; color: #C5A059; font-size: 10px;">◆</span>
               </div>
-              <!-- date -->
-              <div style="text-align:center;margin-top:18px;">
-                <div style="font-size:11px;color:#475569;letter-spacing:2px;">AWARDED ON</div>
-                <div style="font-size:14px;color:#94A3B8;margin-top:4px;font-weight:500;">${date}</div>
-              </div>
-              <!-- signature line -->
-              <div style="margin-top:32px;padding-top:20px;border-top:1px solid rgba(59,130,246,0.1);display:flex;justify-content:space-around;">
-                <div style="text-align:center;">
-                  <div style="width:110px;height:1px;background:#334155;margin:0 auto 8px;"></div>
-                  <div style="font-size:11px;color:#64748B;">Department Head</div>
+
+              <!-- Title of Achievement -->
+              <div style="text-align: center; margin-bottom: 18px; position: relative; z-index: 2;">
+                <div style="font-family: Georgia, serif; font-size: 26px; font-weight: 800; color: #0F172A; letter-spacing: 3.5px; text-transform: uppercase;">
+                  ${certType}
                 </div>
-                <div style="text-align:center;">
-                  <div style="width:110px;height:1px;background:#334155;margin:0 auto 8px;"></div>
-                  <div style="font-size:11px;color:#64748B;">Contest Organizer</div>
+                <div style="font-family: Georgia, serif; font-size: 12px; font-style: italic; color: #64748B; margin-top: 6px;">
+                  This certificate is proudly awarded to
                 </div>
               </div>
-            </div>
-          </div>
-          <!-- footer -->
-          <div style="text-align:center;margin-top:20px;">
-            <div style="font-size:11px;color:#475569;line-height:1.8;">
-              Computer Engineering Department · BVM Engineering College<br>
-              <span style="color:#3B82F6;">techtriquetra@gmail.com</span>
+
+              <!-- Recipient Name -->
+              <div style="text-align: center; margin-bottom: 20px; position: relative; z-index: 2;">
+                <div style="display: inline-block; position: relative; padding: 0 24px 6px 24px; border-bottom: 2px solid #C5A059;">
+                  <span style="font-family: Georgia, serif; font-size: 34px; font-weight: 800; color: #0F172A; letter-spacing: 1px; text-transform: uppercase;">
+                    ${studentName}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Citation Body -->
+              <div style="text-align: center; max-width: 660px; margin: 0 auto 28px auto; position: relative; z-index: 2; line-height: 1.7; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13.5px; color: #334155;">
+                for demonstrating exceptional coding proficiency and securing
+                <strong style="color: #0F172A; font-weight: 800; text-decoration: underline decoration-[#C5A059] decoration-2;">${rankLabel}</strong>
+                in the official coding contest
+                <strong style="color: #1E3A8A; font-weight: 800;">"${contestTitle}"</strong>
+                held on <strong style="color: #0F172A; font-weight: 700;">${date}</strong>
+                organized by Computer Society of India (CSI) BVM Student Chapter.
+              </div>
+
+              <!-- Medal Ribbon & Signature Row -->
+              <div style="display: flex; align-items: flex-end; justify-content: space-between; max-width: 660px; margin: 24px auto 0 auto; padding-top: 16px; border-top: 1px solid #E2E8F0; position: relative; z-index: 2;">
+
+                <!-- Signature: CSI Faculty Advisor (Dr. N. M. Patel) -->
+                <div style="text-align: center; width: 220px;">
+                  <div style="height: 36px;"></div>
+                  <div style="width: 160px; height: 1px; background: #0F172A; margin: 4px auto 6px auto;"></div>
+                  <div style="font-family: Georgia, serif; font-size: 13.5px; font-weight: 700; color: #0F172A;">Dr. N. M. Patel</div>
+                  <div style="font-family: 'Segoe UI', sans-serif; font-size: 11px; color: #64748B;">CSI Faculty Advisor</div>
+                </div>
+
+                <!-- Right: Gold Medal Emblem Badge -->
+                <div style="text-align: center; width: 140px; position: relative; bottom: -4px;">
+                  <div style="display: inline-block; position: relative;">
+                    <!-- Ribbons -->
+                    <div style="position: absolute; top: 38px; left: 16px; width: 18px; height: 32px; background: #991B1B; transform: rotate(15deg); border-bottom: 4px solid #7F1D1D;"></div>
+                    <div style="position: absolute; top: 38px; right: 16px; width: 18px; height: 32px; background: #991B1B; transform: rotate(-15deg); border-bottom: 4px solid #7F1D1D;"></div>
+                    
+                    <!-- Medal Circle -->
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #FBBF24 0%, #D97706 50%, #92400E 100%); border: 3px solid #FFFDF9; box-shadow: 0 4px 10px rgba(180,83,9,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 3;">
+                      <div style="width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                        <span style="font-size: 13px; font-weight: 900; color: #FFFFFF; font-family: 'Segoe UI', sans-serif; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">
+                          #${rank}
+                        </span>
+                        <span style="font-size: 7px; font-weight: 800; color: #FFFDF9; letter-spacing: 0.5px; margin-top: 2px; text-transform: uppercase;">
+                          ${sealText}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
           </div>
         </div>`;
@@ -163,7 +226,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                 scale: 2,
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#0A0E1A',
+                backgroundColor: '#0b1120',
             });
             // Return raw base64 (no data-url prefix) for the API
             return canvas.toDataURL('image/png').split(',')[1];
@@ -428,15 +491,34 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                                         </span>
                                                         <span className="text-xs text-[#475569]">{student.email}</span>
                                                         {index < 3 && (
-                                                            <button 
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDownloadCert(student.name, contest.title, index + 1);
-                                                                }}
-                                                                className="mt-1 text-[10px] text-[#3B82F6] hover:text-white transition-colors bg-[#3B82F6]/10 px-2 py-0.5 rounded cursor-pointer border border-[#3B82F6]/20"
-                                                            >
-                                                                Download Certificate
-                                                            </button>
+                                                            <div className="flex items-center gap-2 mt-1.5">
+                                                                <button 
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const certDate = contest?.startTime 
+                                                                            ? new Date(contest.startTime).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })
+                                                                            : new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+                                                                        setPreviewModalData({
+                                                                            name: student.name,
+                                                                            title: contest.title,
+                                                                            rank: index + 1,
+                                                                            date: certDate
+                                                                        });
+                                                                    }}
+                                                                    className="text-[10px] font-semibold text-[#3B82F6] hover:text-white transition-colors bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20 px-2 py-0.5 rounded cursor-pointer border border-[#3B82F6]/20 flex items-center gap-1"
+                                                                >
+                                                                    <Eye className="w-3 h-3" /> Preview
+                                                                </button>
+                                                                <button 
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDownloadCert(student.name, contest.title, index + 1);
+                                                                    }}
+                                                                    className="text-[10px] font-semibold text-[#F59E0B] hover:text-white transition-colors bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 px-2 py-0.5 rounded cursor-pointer border border-[#F59E0B]/20 flex items-center gap-1"
+                                                                >
+                                                                    <Download className="w-3 h-3" /> Download
+                                                                </button>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </td>
@@ -597,6 +679,47 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Certificate Preview Modal ── */}
+            {previewModalData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#111827] border border-white/10 rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    📜 Official Certificate Preview
+                                </h3>
+                                <p className="text-xs text-[#94A3B8] mt-0.5">
+                                    Computer Society of India (CSI) BVM Student Chapter &middot; {previewModalData.name} ({previewModalData.rank === 1 ? '1st Place' : previewModalData.rank === 2 ? '2nd Place' : '3rd Place'})
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => handleDownloadCert(previewModalData.name, previewModalData.title, previewModalData.rank)}
+                                    className="px-4 py-2 bg-[#F59E0B] hover:bg-[#D97706] text-[#0A0E1A] font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
+                                >
+                                    <Download className="w-4 h-4" /> Download PNG
+                                </button>
+                                <button
+                                    onClick={() => setPreviewModalData(null)}
+                                    className="p-2 text-[#94A3B8] hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                                >
+                                    <XIcon className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Certificate Render Container */}
+                        <div className="flex justify-center bg-[#070a12] p-4 rounded-xl overflow-x-auto border border-white/5">
+                            <div 
+                                dangerouslySetInnerHTML={{ 
+                                    __html: buildCertificateHTML(previewModalData.name, previewModalData.title, previewModalData.rank, previewModalData.date) 
+                                }} 
+                            />
+                        </div>
                     </div>
                 </div>
             )}

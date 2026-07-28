@@ -48,11 +48,12 @@ function buildEmailBody(studentName, rankLabel, contestTitle) {
             <!-- Footer -->
             <tr><td align="center" style="padding-top:24px;">
               <div style="font-size:11px;color:#475569;line-height:1.8;">
-                Computer Engineering Department · BVM Engineering College<br>
+                Computer Society of India (CSI) BVM Student Chapter<br>
+                Department of Computer Engineering &middot; BVM Engineering College<br>
                 <span style="color:#3B82F6;">techtriquetra@gmail.com</span>
               </div>
               <div style="font-size:10px;color:#334155;margin-top:10px;">
-                This certificate was issued by the Talent IQ Platform.
+                This certificate was issued by Computer Society of India (CSI) BVM Student Chapter &amp; TalentIQ Platform.
               </div>
             </td></tr>
 
