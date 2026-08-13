@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { Sparkles, ArrowRightIcon } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import Hero from './components/home/Hero';
-import Features from './components/home/Features';
 import Footer from './components/home/Footer';
 import TopCreatorsBar from './components/TopCreatorsBar';
 
@@ -75,7 +74,6 @@ export default async function Home() {
       </nav>
 
       <Hero sessionUser={sessionUser} />
-      <Features />
       <Footer />
     </div>
   );

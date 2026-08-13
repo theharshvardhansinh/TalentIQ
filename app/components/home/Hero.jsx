@@ -21,6 +21,16 @@ export default function Hero({ sessionUser }) {
                 </span>
               </div>
 
+              {/* CSI BVM Title */}
+              <div className="flex items-center gap-3">
+                <div className="h-px w-8 bg-gradient-to-r from-transparent to-amber-500/60" />
+                <p className="text-sm font-semibold tracking-[0.2em] uppercase text-amber-400/90">
+                  Computer Society of India &mdash; BVM
+                </p>
+                <div className="h-px w-8 bg-gradient-to-l from-transparent to-amber-500/60" />
+              </div>
+
+
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-white">
                 Dominate The <br />
                 <span className="text-gradient-primary relative inline-block">

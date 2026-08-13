@@ -106,11 +106,35 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
     }, [leaderboard, searchTerm, sortField, sortDir]);
 
     const [previewModalData, setPreviewModalData] = useState(null);
+    const [logoCache, setLogoCache] = useState({ csi: '', bvm: '' });
+
+    // Pre-fetch logos as base64 on mount for preview modal
+    useEffect(() => {
+        const fetchLogos = async () => {
+            const toBase64 = async (url) => {
+                try {
+                    const res = await fetch(url);
+                    const blob = await res.blob();
+                    return await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    });
+                } catch { return ''; }
+            };
+            const [csi, bvm] = await Promise.all([
+                toBase64('/csi-logo.jpg'),
+                toBase64('/bvm-logo.png'),
+            ]);
+            setLogoCache({ csi, bvm });
+        };
+        fetchLogos();
+    }, []);
 
     // ── Certificate PNG generation helpers ──────────────────────────────────
 
     /** Builds inline-styled HTML for one official certificate (html2canvas-friendly). */
-    const buildCertificateHTML = (studentName, contestTitle, rank, date) => {
+    const buildCertificateHTML = (studentName, contestTitle, rank, date, csiLogoB64 = '', bvmLogoB64 = '') => {
         const rankLabel = rank === 1 ? '1st Position' : rank === 2 ? '2nd Position' : rank === 3 ? '3rd Position' : `${rank}th Position`;
         const sealText = rank === 1 ? 'GOLD MEDAL' : rank === 2 ? 'SILVER MEDAL' : rank === 3 ? 'BRONZE MEDAL' : 'MERIT AWARD';
         const certType = rank === 1 ? 'CERTIFICATE OF EXCELLENCE' : 'CERTIFICATE OF MERIT';
@@ -146,27 +170,50 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
               </div>
 
               <!-- Header Section -->
-              <div style="text-align: center; margin-bottom: 14px; position: relative; z-index: 2;">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 6px;">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                  <span style="font-family: Georgia, serif; font-size: 23px; font-weight: 800; color: #0F172A; letter-spacing: 2.5px; text-transform: uppercase;">
-                    COMPUTER SOCIETY OF INDIA
-                  </span>
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                </div>
+              <div style="margin-bottom: 14px; position: relative; z-index: 2;">
+                <!-- Three-column header: CSI logo | Text | BVM logo -->
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
 
-                <div style="font-family: 'Segoe UI', sans-serif; font-size: 13px; font-weight: 800; color: #B45309; letter-spacing: 4px; text-transform: uppercase; margin-top: 2px;">
-                  BVM STUDENT CHAPTER
-                </div>
-                <div style="font-family: 'Segoe UI', sans-serif; font-size: 11px; font-weight: 600; color: #475569; letter-spacing: 1px; margin-top: 3px;">
-                  Birla Vishvakarma Mahavidyalaya Engineering College (An Autonomous Institution)
-                </div>
-                <div style="font-family: 'Segoe UI', sans-serif; font-size: 10.5px; color: #64748B; margin-top: 2px;">
-                  TalentIQ Platform
+                  <!-- CSI Logo (Left) -->
+                  <div style="flex: 0 0 72px; display: flex; align-items: center; justify-content: center;">
+                    ${csiLogoB64
+                      ? `<img src="${csiLogoB64}" alt="CSI Logo" style="width: 68px; height: 68px; object-fit: contain;"/>`
+                      : `<svg width="68" height="68" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="96" fill="#1a56a0"/><circle cx="100" cy="100" r="90" fill="white" stroke="#1a56a0" stroke-width="2"/><text x="100" y="110" text-anchor="middle" font-family="Arial" font-size="28" font-weight="bold" fill="#1a56a0">CSI</text></svg>`
+                    }
+                  </div>
+
+                  <!-- Center Text -->
+                  <div style="flex: 1; text-align: center;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px;">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                      <span style="font-family: Georgia, serif; font-size: 20px; font-weight: 800; color: #0F172A; letter-spacing: 2px; text-transform: uppercase;">
+                        COMPUTER SOCIETY OF INDIA
+                      </span>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </div>
+                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; font-weight: 800; color: #B45309; letter-spacing: 4px; text-transform: uppercase; margin-top: 2px;">
+                      BVM STUDENT CHAPTER
+                    </div>
+                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 10px; font-weight: 600; color: #475569; letter-spacing: 0.8px; margin-top: 3px;">
+                      Birla Vishvakarma Mahavidyalaya Engineering College (An Autonomous Institution)
+                    </div>
+                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 9.5px; color: #64748B; margin-top: 2px;">
+                      TalentIQ Platform
+                    </div>
+                  </div>
+
+                  <!-- BVM Logo (Right) -->
+                  <div style="flex: 0 0 72px; display: flex; align-items: center; justify-content: center;">
+                    ${bvmLogoB64
+                      ? `<img src="${bvmLogoB64}" alt="BVM Logo" style="width: 68px; height: 68px; object-fit: contain;"/>`
+                      : `<svg width="68" height="68" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="96" fill="none" stroke="#1a3a7a" stroke-width="4"/><circle cx="100" cy="100" r="88" fill="none" stroke="#1a3a7a" stroke-width="1.5"/><text x="100" y="95" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="#1a3a7a">BVM</text><text x="100" y="115" text-anchor="middle" font-family="Arial" font-size="10" fill="#1a3a7a">ANAND</text></svg>`
+                    }
+                  </div>
+
                 </div>
               </div>
 
@@ -205,8 +252,8 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                 organized by Computer Society of India (CSI) BVM Student Chapter.
               </div>
 
-              <!-- Medal Ribbon & Signature Row -->
-              <div style="display: flex; align-items: flex-end; justify-content: space-between; max-width: 660px; margin: 24px auto 0 auto; padding-top: 16px; border-top: 1px solid #E2E8F0; position: relative; z-index: 2;">
+              <!-- Signature Row -->
+              <div style="display: flex; align-items: flex-end; justify-content: flex-start; max-width: 660px; margin: 24px auto 0 auto; padding-top: 16px; border-top: 1px solid #E2E8F0; position: relative; z-index: 2;">
 
                 <!-- Signature: CSI Faculty Advisor (Dr. N. M. Patel) -->
                 <div style="text-align: center; width: 220px;">
@@ -216,27 +263,6 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                   <div style="font-family: 'Segoe UI', sans-serif; font-size: 11px; color: #64748B;">CSI Faculty Advisor</div>
                 </div>
 
-                <!-- Right: Gold Medal Emblem Badge -->
-                <div style="text-align: center; width: 140px; position: relative; bottom: -4px;">
-                  <div style="display: inline-block; position: relative;">
-                    <!-- Ribbons -->
-                    <div style="position: absolute; top: 38px; left: 16px; width: 18px; height: 32px; background: #991B1B; transform: rotate(15deg); border-bottom: 4px solid #7F1D1D;"></div>
-                    <div style="position: absolute; top: 38px; right: 16px; width: 18px; height: 32px; background: #991B1B; transform: rotate(-15deg); border-bottom: 4px solid #7F1D1D;"></div>
-                    
-                    <!-- Medal Circle -->
-                    <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #FBBF24 0%, #D97706 50%, #92400E 100%); border: 3px solid #FFFDF9; box-shadow: 0 4px 10px rgba(180,83,9,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 3;">
-                      <div style="width: 52px; height: 52px; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                        <span style="font-size: 13px; font-weight: 900; color: #FFFFFF; font-family: 'Segoe UI', sans-serif; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">
-                          #${rank}
-                        </span>
-                        <span style="font-size: 7px; font-weight: 800; color: #FFFDF9; letter-spacing: 0.5px; margin-top: 2px; text-transform: uppercase;">
-                          ${sealText}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
               </div>
 
             </div>
@@ -244,14 +270,35 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
         </div>`;
     };
 
+    /** Converts an image URL to a base64 data URI for html2canvas compatibility. */
+    const getImageAsBase64 = async (url) => {
+        try {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            return await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        } catch {
+            return '';
+        }
+    };
+
     /** Renders a certificate HTML string off-screen and returns a base64 PNG string. */
     const generateCertificatePNG = async (studentName, contestTitle, rank) => {
         const html2canvas = (await import('html2canvas')).default;
         const date = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
 
+        // Pre-fetch logos as base64 so html2canvas can render them
+        const [csiLogoB64, bvmLogoB64] = await Promise.all([
+            getImageAsBase64('/csi-logo.jpg'),
+            getImageAsBase64('/bvm-logo.png'),
+        ]);
+
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;';
-        wrapper.innerHTML = buildCertificateHTML(studentName, contestTitle, rank, date);
+        wrapper.innerHTML = buildCertificateHTML(studentName, contestTitle, rank, date, csiLogoB64, bvmLogoB64);
         document.body.appendChild(wrapper);
 
         try {
@@ -770,7 +817,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                         <div className="flex justify-center bg-[#070a12] p-4 rounded-xl overflow-x-auto border border-white/5">
                             <div 
                                 dangerouslySetInnerHTML={{ 
-                                    __html: buildCertificateHTML(previewModalData.name, previewModalData.title, previewModalData.rank, previewModalData.date) 
+                                    __html: buildCertificateHTML(previewModalData.name, previewModalData.title, previewModalData.rank, previewModalData.date, logoCache.csi, logoCache.bvm) 
                                 }} 
                             />
                         </div>

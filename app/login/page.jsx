@@ -113,7 +113,7 @@ export default function LoginPage() {
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <label className="block text-sm font-medium text-[#94A3B8]">Password</label>
-                            <Link href="/forgot-password" className="text-sm text-[#3B82F6] hover:text-[#60A5FA] transition-colors">
+                            <Link href={`/forgot-password${formData.email ? `?email=${encodeURIComponent(formData.email)}` : ''}`} className="text-sm text-[#3B82F6] hover:text-[#60A5FA] transition-colors">
                                 Forgot password?
                             </Link>
                         </div>
