@@ -144,9 +144,12 @@ export default function LeaderboardPage({ params: paramsPromise, showBackButton 
                                                 <div className="text-xs text-slate-500 font-mono">{maskEmail(displayEmail)}</div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-sm font-bold">
-                                                    {solvedCount} <span className="text-emerald-500/50 text-xs font-normal">Solved</span>
-                                                </span>
+                                                <div className="flex flex-col items-center">
+                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-sm font-bold">
+                                                        {entry.scorePoints ?? 0} <span className="text-emerald-500/50 text-xs font-normal">Marks</span>
+                                                    </span>
+                                                    <span className="text-xs text-slate-500 mt-1">{entry.solvedCount ?? 0} Solved</span>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-right tabular-nums text-slate-300">
                                                 <div className="flex items-center justify-end gap-2 text-sm">

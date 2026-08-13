@@ -305,7 +305,9 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                                                 <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${getDifficultyColor(problem.difficulty)}`}>
                                                     {problem.difficulty}
                                                 </span>
-                                                <span className="text-[#475569] font-mono">Score: 100</span>
+                                                <span className="text-[#475569] font-mono">
+                                                    Score: {problem.difficulty === 'Easy' ? 2 : problem.difficulty === 'Hard' ? 6 : 4} Marks
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -338,14 +340,18 @@ export default function ContestDetailPage({ params: paramsPromise }) {
                             <h3 className="font-bold text-white mb-4 flex items-center gap-2 text-sm">
                                 <Trophy className="w-4 h-4 text-[#F59E0B]" /> Your Progress
                             </h3>
-                            <div className="flex justify-between text-sm text-[#94A3B8]/60 mb-2">
+                            <div className="flex justify-between text-xs text-[#94A3B8]/60 mb-1.5">
                                 <span>Solved</span>
                                 <span className="font-bold text-white">{contest.userScore} <span className="text-[#475569] font-normal">/ {contest.totalProblems}</span></span>
+                            </div>
+                            <div className="flex justify-between text-xs text-[#94A3B8]/60 mb-2.5">
+                                <span>Marks Earned</span>
+                                <span className="font-bold text-white">{contest.userMarks ?? 0} <span className="text-[#475569] font-normal">/ {contest.totalMarks ?? 0}</span></span>
                             </div>
                             <div className="w-full h-2 bg-[#0A0E1A] rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-gradient-to-r from-[#22D3EE] to-[#3B82F6] transition-all duration-1000 rounded-full"
-                                    style={{ width: `${(contest.userScore / (contest.totalProblems || 1)) * 100}%` }}
+                                    style={{ width: `${((contest.userMarks ?? 0) / (contest.totalMarks || 1)) * 100}%` }}
                                 />
                             </div>
                         </div>

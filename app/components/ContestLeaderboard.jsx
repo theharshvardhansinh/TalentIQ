@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import {
     Trophy, Loader2, ArrowLeft, Search, Mail, CheckCircle2,
     AlertCircle, Users, BookOpen, BarChart2,
-    ChevronDown, ChevronUp, CheckCheck, X as XIcon, Eye, Download
+    ChevronDown, ChevronUp, CheckCheck, X as XIcon, Eye, Download, Trash2
 } from 'lucide-react';
 
 export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
@@ -16,25 +16,58 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
     const [expandedRow, setExpandedRow] = useState(null);
     const [sortField, setSortField] = useState('rank');
     const [sortDir, setSortDir] = useState('asc');
+    const [deletingStudentId, setDeletingStudentId] = useState(null);
+
+    const fetchLeaderboard = async () => {
+        if (!contest) return;
+        try {
+            const res = await fetch(isVolunteer ? `/api/admin/contests/${contest._id}/leaderboard` : `/api/contest/${contest._id}/leaderboard`);
+            const data = await res.json();
+            if (data.success) {
+                setLeaderboard(data.data);
+                setMeta(data.meta);
+            }
+        } catch (error) {
+            console.error('Failed to fetch leaderboard', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (!contest) return;
-        const fetchLeaderboard = async () => {
-            try {
-                const res = await fetch(isVolunteer ? `/api/admin/contests/${contest._id}/leaderboard` : `/api/contest/${contest._id}/leaderboard`);
-                const data = await res.json();
-                if (data.success) {
-                    setLeaderboard(data.data);
-                    setMeta(data.meta);
-                }
-            } catch (error) {
-                console.error('Failed to fetch leaderboard', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        setLoading(true);
         fetchLeaderboard();
     }, [contest]);
+
+    const handleRemoveStudent = async (studentId, studentName) => {
+        if (!confirm(`Are you sure you want to delete ${studentName} and ALL of their submitted code from this contest? This action is permanent and cannot be undone.`)) {
+            return;
+        }
+
+        setDeletingStudentId(studentId);
+        try {
+            const res = await fetch(`/api/admin/contests/${contest._id}/remove-student`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`Successfully removed ${studentName} and their submissions.`);
+                setExpandedRow(null);
+                await fetchLeaderboard();
+            } else {
+                alert(data.message || 'Failed to remove student');
+            }
+        } catch (error) {
+            console.error('Error removing student:', error);
+            alert('An error occurred while trying to remove the student.');
+        } finally {
+            setDeletingStudentId(null);
+        }
+    };
 
     // Sorting
     const handleSort = (field) => {
@@ -356,7 +389,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
                             { icon: Users, label: 'Total Students', value: meta.totalStudents, color: 'text-[#3B82F6]', bg: 'bg-[#3B82F6]/10 border-[#3B82F6]/15' },
-                            { icon: BookOpen, label: 'Total Problems', value: meta.totalProblems, color: 'text-[#22D3EE]', bg: 'bg-[#22D3EE]/10 border-[#22D3EE]/15' },
+                            { icon: BookOpen, label: 'Total Problems', value: `${meta.totalProblems} (${meta.totalMarks ?? 0} Marks)`, color: 'text-[#22D3EE]', bg: 'bg-[#22D3EE]/10 border-[#22D3EE]/15' },
                             { icon: BarChart2, label: 'Avg Score', value: `${meta.avgScore}%`, color: 'text-[#10B981]', bg: 'bg-[#10B981]/10 border-[#10B981]/15' },
                             { icon: Trophy, label: 'Top Solver', value: leaderboard[0]?.name?.split(' ')[0] || '—', color: 'text-[#F59E0B]', bg: 'bg-[#F59E0B]/10 border-[#F59E0B]/15' },
                         ].map((stat, i) => (
@@ -591,7 +624,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                                         <span className={`text-lg font-black ${student.score >= 80 ? 'text-[#10B981]' :
                                                             student.score >= 50 ? 'text-[#3B82F6]' :
                                                                 student.score > 0 ? 'text-[#F59E0B]' : 'text-[#475569]'
-                                                            }`}>{student.score}%</span>
+                                                            }`}>{student.scorePoints ?? student.score} <span className="text-[10px] font-normal text-[#475569]">/ {meta?.totalMarks ?? '—'}</span></span>
                                                         <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full rounded-full transition-all ${student.score >= 80 ? 'bg-[#10B981]' :
@@ -628,9 +661,9 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                                                 <p className="text-xs text-[#475569]">{student.totalAttempts} total submissions</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs text-[#475569] font-semibold uppercase tracking-wider mb-2">Score</p>
+                                                                <p className="text-xs text-[#475569] font-semibold uppercase tracking-wider mb-2">Score (Marks)</p>
                                                                 <p className={`text-2xl font-black ${student.score >= 80 ? 'text-[#10B981]' : student.score >= 50 ? 'text-[#3B82F6]' : student.score > 0 ? 'text-[#F59E0B]' : 'text-[#475569]'}`}>
-                                                                    {student.score}%
+                                                                    {student.scorePoints ?? 0} <span className="text-base font-normal text-[#475569]">/ {meta?.totalMarks ?? 0} ({student.score}%)</span>
                                                                 </p>
                                                             </div>
                                                             <div>
@@ -642,6 +675,27 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                                                 </p>
                                                             </div>
                                                         </div>
+
+                                                        {isVolunteer && (
+                                                            <div className="mt-5 pt-4 border-t border-rose-500/20 bg-rose-500/5 p-4 rounded-xl flex items-center justify-between gap-4">
+                                                                <div>
+                                                                    <p className="text-xs font-bold text-rose-400 uppercase tracking-widest flex items-center gap-1.5 font-sans">
+                                                                        <Trash2 className="w-3.5 h-3.5" /> Danger Zone
+                                                                    </p>
+                                                                    <p className="text-xs text-slate-400 mt-1">Delete this student's registration and all of their submissions for this contest.</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleRemoveStudent(student._id, student.name);
+                                                                    }}
+                                                                    disabled={deletingStudentId === student._id}
+                                                                    className="flex items-center gap-1.5 px-4 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-800 text-white text-xs font-bold rounded-lg transition-colors border border-rose-600 shadow-lg shadow-rose-500/10 cursor-pointer"
+                                                                >
+                                                                    {deletingStudentId === student._id ? 'Deleting...' : 'Delete Student & Code'}
+                                                                </button>
+                                                            </div>
+                                                        )}
 
                                                         {isVolunteer && student.solvedDetails && student.solvedDetails.length > 0 && (
                                                             <div className="mt-4 border-t border-[#3B82F6]/10 pt-5">

@@ -64,6 +64,8 @@ export async function GET(req, { params }) {
                     isEnded: false,
                     isRegistered: isRegistered,
                     userScore: 0,
+                    userMarks: 0,
+                    totalMarks: 0,
                     problems: [] // Explicitly empty
                 }
             });
@@ -101,9 +103,19 @@ export async function GET(req, { params }) {
 
         // 5. Attach status and calculate score
         let earnedScore = 0;
+        let userMarks = 0;
+        let totalMarks = 0;
+
         const problemsWithStatus = contest.problems.map(prob => {
             const status = statusMap[prob.slug] || 'unsolved';
-            if (status === 'solved') earnedScore++;
+            const diff = prob.difficulty || 'Medium';
+            const marks = diff === 'Easy' ? 2 : diff === 'Hard' ? 6 : 4;
+            
+            totalMarks += marks;
+            if (status === 'solved') {
+                earnedScore++;
+                userMarks += marks;
+            }
             return {
                 ...prob,
                 userStatus: status
@@ -122,6 +134,8 @@ export async function GET(req, { params }) {
                 status: isEnded ? 'past' : (isUpcoming ? 'upcoming' : 'live'),
                 isEnded: isEnded,
                 userScore: earnedScore,
+                userMarks: userMarks,
+                totalMarks: totalMarks,
                 totalProblems: contest.problems.length,
                 isRegistered: isRegistered
             }

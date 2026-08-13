@@ -18,7 +18,7 @@ export async function GET(req, { params }) {
         await dbConnect();
 
         // Verify contest exists and populate problem slugs
-        const contest = await Contest.findById(id).populate('problems', 'slug title');
+        const contest = await Contest.findById(id).populate('problems', 'slug title difficulty');
         if (!contest) {
             return NextResponse.json({ success: false, message: 'Contest not found' }, { status: 404 });
         }
@@ -26,10 +26,20 @@ export async function GET(req, { params }) {
         const contestObjId = new mongoose.Types.ObjectId(id);
 
         // ── 1. All unique problems in this contest ──────────────────────────────
-        const contestProblems = (contest.problems || []).map(p => ({
-            slug: p.slug,
-            title: p.title || p.slug,
-        }));
+        const problemDifficultyMap = {};
+        let totalContestMarks = 0;
+        const contestProblems = (contest.problems || []).map(p => {
+            const diff = p.difficulty || 'Medium';
+            const marks = diff === 'Easy' ? 2 : diff === 'Hard' ? 6 : 4;
+            problemDifficultyMap[p.slug] = marks;
+            totalContestMarks += marks;
+            return {
+                slug: p.slug,
+                title: p.title || p.slug,
+                difficulty: diff,
+                marks: marks,
+            };
+        });
 
         // ── 2. Per-user: which unique problems did they solve (at least one Accepted)
         const solvedAgg = await Submission.aggregate([
@@ -93,6 +103,13 @@ export async function GET(req, { params }) {
         const rows = users.map(u => {
             const uid = u._id.toString();
             const info = solvedMap[uid] || { solvedSlugs: [], solvedDetails: [], solvedCount: 0, lastSolvedAt: null };
+            
+            // Calculate total marks earned by this user
+            let userMarks = 0;
+            info.solvedSlugs.forEach(slug => {
+                userMarks += problemDifficultyMap[slug] || 0;
+            });
+
             return {
                 _id: uid,
                 name: u.name,
@@ -102,16 +119,17 @@ export async function GET(req, { params }) {
                 solvedDetails: info.solvedDetails,
                 totalAttempts: attemptsMap[uid] || 0,
                 lastSolvedAt: info.lastSolvedAt,
-                // Score: each problem is worth equal marks; scale to 100
-                score: contestProblems.length > 0
-                    ? Math.round((info.solvedCount / contestProblems.length) * 100)
+                // Score: percentage of marks earned out of total marks
+                score: totalContestMarks > 0
+                    ? Math.round((userMarks / totalContestMarks) * 100)
                     : 0,
+                scorePoints: userMarks,
             };
         });
 
-        // Sort: most solved first, then earliest last-solved (tiebreak)
+        // Sort: most points first, then earliest last-solved (tiebreak)
         rows.sort((a, b) => {
-            if (b.solvedCount !== a.solvedCount) return b.solvedCount - a.solvedCount;
+            if (b.scorePoints !== a.scorePoints) return b.scorePoints - a.scorePoints;
             if (a.lastSolvedAt && b.lastSolvedAt) return new Date(a.lastSolvedAt) - new Date(b.lastSolvedAt);
             return 0;
         });
@@ -122,6 +140,7 @@ export async function GET(req, { params }) {
             meta: {
                 totalStudents: rows.length,
                 totalProblems: contestProblems.length,
+                totalMarks: totalContestMarks,
                 problems: contestProblems,
                 avgScore: rows.length > 0
                     ? Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length)
