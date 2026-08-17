@@ -12,7 +12,13 @@ async function scrapeCodeChef(url) {
                 browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`
             });
         } else {
-            const browserPath = '/usr/bin/google-chrome-stable';
+            const fs = require('fs');
+            const paths = [
+                'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+                'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+                '/usr/bin/google-chrome-stable'
+            ];
+            const browserPath = paths.find(p => fs.existsSync(p)) || paths[0];
             browser = await puppeteer.launch({
                 executablePath: browserPath,
                 headless: 'new',

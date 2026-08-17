@@ -19,6 +19,8 @@ async function captureProblem(problemUrl) {
             // Local development
             const fs = require('fs');
             const paths = [
+                'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Standard Windows Chrome
+                'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe', // Standard Windows Chrome (32-bit)
                 '/usr/bin/google-chrome-stable', // Standard Google Chrome
                 '/usr/bin/google-chrome',        // Alternative Google Chrome path
                 '/usr/bin/chromium-browser',     // Standard Chromium
