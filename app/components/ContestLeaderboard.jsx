@@ -106,183 +106,205 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
     }, [leaderboard, searchTerm, sortField, sortDir]);
 
     const [previewModalData, setPreviewModalData] = useState(null);
-    const [logoCache, setLogoCache] = useState({ csi: '', bvm: '' });
 
-    // Pre-fetch logos as base64 on mount for preview modal
-    useEffect(() => {
-        const fetchLogos = async () => {
-            const toBase64 = async (url) => {
-                try {
-                    const res = await fetch(url);
-                    const blob = await res.blob();
-                    return await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(blob);
-                    });
-                } catch { return ''; }
-            };
-            const [csi, bvm] = await Promise.all([
-                toBase64('/csi-logo.jpg'),
-                toBase64('/bvm-logo.png'),
-            ]);
-            setLogoCache({ csi, bvm });
-        };
-        fetchLogos();
-    }, []);
 
     // ── Certificate PNG generation helpers ──────────────────────────────────
 
     /** Builds inline-styled HTML for one official certificate (html2canvas-friendly). */
-    const buildCertificateHTML = (studentName, contestTitle, rank, date, csiLogoB64 = '', bvmLogoB64 = '') => {
+    /** Builds inline-styled HTML for one official certificate (html2canvas-friendly). */
+    const buildCertificateHTML = (studentName, contestTitle, rank, date) => {
         const rankLabel = rank === 1 ? '1st Position' : rank === 2 ? '2nd Position' : rank === 3 ? '3rd Position' : `${rank}th Position`;
-        const sealText = rank === 1 ? 'GOLD MEDAL' : rank === 2 ? 'SILVER MEDAL' : rank === 3 ? 'BRONZE MEDAL' : 'MERIT AWARD';
-        const certType = rank === 1 ? 'CERTIFICATE OF EXCELLENCE' : 'CERTIFICATE OF MERIT';
+        const certType = rank <= 3 ? 'CERTIFICATE OF EXCELLENCE' : 'CERTIFICATE OF MERIT';
+
+        const medalColor  = rank===1 ? '#D4AF37' : rank===2 ? '#A8A9AD' : rank===3 ? '#CD7F32' : '#3B82F6';
+        const medalLight  = rank===1 ? '#FFF5C0' : rank===2 ? '#F5F5F5' : rank===3 ? '#F5C98A' : '#93C5FD';
+        const medalDark   = rank===1 ? '#6B4C00' : rank===2 ? '#444'    : rank===3 ? '#4A2000' : '#1E3A8A';
 
         return `
-        <div style="width: 860px; padding: 24px; background: #0b1120; font-family: 'Segoe UI', Georgia, serif; box-sizing: border-box;">
-          <div style="background: #FFFDF9; border: 10px solid #0F172A; padding: 32px 28px 28px 28px; position: relative; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); box-sizing: border-box; overflow: hidden;">
-            
-            <!-- Inner Decorative Gold Border Frame -->
-            <div style="border: 2px solid #C5A059; padding: 28px 24px 24px 24px; position: relative; background: #FFFDF9;">
+        <div style="width:1123px; height:794px; background:#FDFCF7; font-family:'Georgia',serif; box-sizing:border-box; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:center; align-items:center; padding: 40px; color: #0d1b2e;">
 
-              <!-- Watermark Background Crest -->
-              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; pointer-events: none; text-align: center; width: 100%;">
-                <svg width="340" height="340" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="100" cy="100" r="90" stroke="#0F172A" stroke-width="4" stroke-dasharray="8 4"/>
-                  <circle cx="100" cy="100" r="75" stroke="#0F172A" stroke-width="2"/>
-                  <path d="M100 25 L120 70 L170 70 L130 100 L145 150 L100 120 L55 150 L70 100 L30 70 L80 70 Z" fill="#0F172A"/>
-                </svg>
-              </div>
+          <!-- Background Patterns & Borders -->
+          <!-- Outer navy border -->
+          <div style="position:absolute; inset:0; border:20px solid #0d1b2e; pointer-events:none;"></div>
+          
+          <!-- Inner gold border -->
+          <div style="position:absolute; inset:24px; border:3px solid #C5A059; pointer-events:none;"></div>
+          
+          <!-- Thin inner border -->
+          <div style="position:absolute; inset:34px; border:1px solid rgba(197,160,89,0.5); pointer-events:none;"></div>
 
-              <!-- Corner Ornaments (Gold SVGs - aligned flush with inner border) -->
-              <div style="position: absolute; top: 2px; left: 2px; width: 32px; height: 32px;">
-                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
-              </div>
-              <div style="position: absolute; top: 2px; right: 2px; width: 32px; height: 32px; transform: scaleX(-1);">
-                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
-              </div>
-              <div style="position: absolute; bottom: 2px; left: 2px; width: 32px; height: 32px; transform: scaleY(-1);">
-                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
-              </div>
-              <div style="position: absolute; bottom: 2px; right: 2px; width: 32px; height: 32px; transform: scale(-1);">
-                <svg width="32" height="32" viewBox="0 0 40 40"><path d="M0 0 H40 V6 H6 V40 H0 Z" fill="#C5A059"/><path d="M10 10 H30 V14 H14 V30 H10 Z" fill="#C5A059"/></svg>
-              </div>
+          <!-- Corner ornaments -->
+          <svg style="position:absolute; top:24px; left:24px; width:60px; height:60px;" viewBox="0 0 60 60"><path d="M0 0 H60 V10 H10 V60 H0 Z" fill="#C5A059"/><rect x="16" y="16" width="20" height="4" fill="#C5A059"/><rect x="16" y="16" width="4" height="20" fill="#C5A059"/></svg>
+          <svg style="position:absolute; top:24px; right:24px; width:60px; height:60px; transform:scaleX(-1);" viewBox="0 0 60 60"><path d="M0 0 H60 V10 H10 V60 H0 Z" fill="#C5A059"/><rect x="16" y="16" width="20" height="4" fill="#C5A059"/><rect x="16" y="16" width="4" height="20" fill="#C5A059"/></svg>
+          <svg style="position:absolute; bottom:24px; left:24px; width:60px; height:60px; transform:scaleY(-1);" viewBox="0 0 60 60"><path d="M0 0 H60 V10 H10 V60 H0 Z" fill="#C5A059"/><rect x="16" y="16" width="20" height="4" fill="#C5A059"/><rect x="16" y="16" width="4" height="20" fill="#C5A059"/></svg>
+          <svg style="position:absolute; bottom:24px; right:24px; width:60px; height:60px; transform:scale(-1);" viewBox="0 0 60 60"><path d="M0 0 H60 V10 H10 V60 H0 Z" fill="#C5A059"/><rect x="16" y="16" width="20" height="4" fill="#C5A059"/><rect x="16" y="16" width="4" height="20" fill="#C5A059"/></svg>
 
-              <!-- Header Section -->
-              <div style="margin-bottom: 14px; position: relative; z-index: 2;">
-                <!-- Three-column header: CSI logo | Text | BVM logo -->
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <!-- Watermark Logo -->
+          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.04; pointer-events:none;">
+            <svg width="480" height="480" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="50" cy="34" rx="12" ry="24" stroke="#0d1b2e" stroke-width="8" fill="none"/>
+              <ellipse cx="32" cy="66" rx="12" ry="24" stroke="#0d1b2e" stroke-width="8" fill="none" transform="rotate(60,32,66)"/>
+              <ellipse cx="68" cy="66" rx="12" ry="24" stroke="#0d1b2e" stroke-width="8" fill="none" transform="rotate(-60,68,66)"/>
+            </svg>
+          </div>
 
-                  <!-- CSI Logo (Left) -->
-                  <div style="flex: 0 0 72px; display: flex; align-items: center; justify-content: center;">
-                    ${csiLogoB64
-                      ? `<img src="${csiLogoB64}" alt="CSI Logo" style="width: 68px; height: 68px; object-fit: contain;"/>`
-                      : `<svg width="68" height="68" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="96" fill="#1a56a0"/><circle cx="100" cy="100" r="90" fill="white" stroke="#1a56a0" stroke-width="2"/><text x="100" y="110" text-anchor="middle" font-family="Arial" font-size="28" font-weight="bold" fill="#1a56a0">CSI</text></svg>`
-                    }
-                  </div>
+          <!-- Header -->
+          <div style="text-align:center; z-index:2; margin-top:20px;">
+            <div style="display:inline-flex; align-items:center; justify-content:center; gap:20px; margin-bottom: 20px;">
+              <svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="gL" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#9333EA"/>
+                    <stop offset="100%" stop-color="#38BDF8"/>
+                  </linearGradient>
+                  <linearGradient id="gR" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38BDF8"/>
+                    <stop offset="100%" stop-color="#9333EA"/>
+                  </linearGradient>
+                </defs>
 
-                  <!-- Center Text -->
-                  <div style="flex: 1; text-align: center;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px;">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                      <span style="font-family: Georgia, serif; font-size: 20px; font-weight: 800; color: #0F172A; letter-spacing: 2px; text-transform: uppercase;">
-                        COMPUTER SOCIETY OF INDIA
-                      </span>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C5A059" stroke-width="2">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                    </div>
-                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 12px; font-weight: 800; color: #B45309; letter-spacing: 4px; text-transform: uppercase; margin-top: 2px;">
-                      BVM STUDENT CHAPTER
-                    </div>
-                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 10px; font-weight: 600; color: #475569; letter-spacing: 0.8px; margin-top: 3px;">
-                      Birla Vishvakarma Mahavidyalaya Engineering College (An Autonomous Institution)
-                    </div>
-                    <div style="font-family: 'Segoe UI', sans-serif; font-size: 9.5px; color: #64748B; margin-top: 2px;">
-                      TalentIQ Platform
-                    </div>
-                  </div>
-
-                  <!-- BVM Logo (Right) -->
-                  <div style="flex: 0 0 72px; display: flex; align-items: center; justify-content: center;">
-                    ${bvmLogoB64
-                      ? `<img src="${bvmLogoB64}" alt="BVM Logo" style="width: 68px; height: 68px; object-fit: contain;"/>`
-                      : `<svg width="68" height="68" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="96" fill="none" stroke="#1a3a7a" stroke-width="4"/><circle cx="100" cy="100" r="88" fill="none" stroke="#1a3a7a" stroke-width="1.5"/><text x="100" y="95" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="#1a3a7a">BVM</text><text x="100" y="115" text-anchor="middle" font-family="Arial" font-size="10" fill="#1a3a7a">ANAND</text></svg>`
-                    }
-                  </div>
-
-                </div>
-              </div>
-
-              <!-- Divider Motif -->
-              <div style="text-align: center; margin: 12px 0 18px 0; position: relative;">
-                <div style="height: 1px; background: linear-gradient(90deg, transparent 5%, #C5A059 50%, transparent 95%); width: 75%; margin: 0 auto;"></div>
-                <span style="position: absolute; top: -7px; left: 50%; transform: translateX(-50%); background: #FFFDF9; padding: 0 8px; color: #C5A059; font-size: 10px;">◆</span>
-              </div>
-
-              <!-- Title of Achievement -->
-              <div style="text-align: center; margin-bottom: 18px; position: relative; z-index: 2;">
-                <div style="font-family: Georgia, serif; font-size: 26px; font-weight: 800; color: #0F172A; letter-spacing: 3.5px; text-transform: uppercase;">
-                  ${certType}
-                </div>
-                <div style="font-family: Georgia, serif; font-size: 12px; font-style: italic; color: #64748B; margin-top: 6px;">
-                  This certificate is proudly awarded to
-                </div>
-              </div>
-
-              <!-- Recipient Name -->
-              <div style="text-align: center; margin-bottom: 20px; position: relative; z-index: 2;">
-                <div style="display: inline-block; position: relative; padding: 0 24px 6px 24px; border-bottom: 2px solid #C5A059;">
-                  <span style="font-family: Georgia, serif; font-size: 34px; font-weight: 800; color: #0F172A; letter-spacing: 1px; text-transform: uppercase;">
-                    ${studentName}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Citation Body -->
-              <div style="text-align: center; max-width: 660px; margin: 0 auto 28px auto; position: relative; z-index: 2; line-height: 1.7; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13.5px; color: #334155;">
-                for demonstrating exceptional coding proficiency and securing
-                <strong style="color: #0F172A; font-weight: 800; text-decoration: underline decoration-[#C5A059] decoration-2;">${rankLabel}</strong>
-                in the official coding contest
-                <strong style="color: #1E3A8A; font-weight: 800;">"${contestTitle}"</strong>
-                held on <strong style="color: #0F172A; font-weight: 700;">${date}</strong>
-                organized by Computer Society of India (CSI) BVM Student Chapter.
-              </div>
-
-              <!-- Signature Row -->
-              <div style="display: flex; align-items: flex-end; justify-content: flex-start; max-width: 660px; margin: 24px auto 0 auto; padding-top: 16px; border-top: 1px solid #E2E8F0; position: relative; z-index: 2;">
-
-                <!-- Signature: CSI Faculty Advisor (Dr. N. M. Patel) -->
-                <div style="text-align: center; width: 220px;">
-                  <div style="height: 36px;"></div>
-                  <div style="width: 160px; height: 1px; background: #0F172A; margin: 4px auto 6px auto;"></div>
-                  <div style="font-family: Georgia, serif; font-size: 13.5px; font-weight: 700; color: #0F172A;">Dr. N. M. Patel</div>
-                  <div style="font-family: 'Segoe UI', sans-serif; font-size: 11px; color: #64748B;">CSI Faculty Advisor</div>
-                </div>
-
-              </div>
-
+                <!-- LEFT SHAPE -->
+                <path d="M 42 20 C 5 20, 5 80, 42 80" fill="none" stroke="url(#gL)" stroke-width="16" stroke-linecap="round"/>
+                <path d="M 42 20 L 22 28" fill="none" stroke="url(#gL)" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="20" cy="78" r="8" fill="url(#gL)"/>
+                <circle cx="42" cy="20" r="5" fill="#FDFCF7"/>
+                
+                <!-- RIGHT SHAPE -->
+                <path d="M 58 20 C 95 20, 95 80, 58 80" fill="none" stroke="url(#gR)" stroke-width="16" stroke-linecap="round"/>
+                <path d="M 58 80 L 78 72" fill="none" stroke="url(#gR)" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="80" cy="22" r="8" fill="url(#gR)"/>
+                <circle cx="58" cy="80" r="5" fill="#FDFCF7"/>
+              </svg>
+              <span style="font-family:'Segoe UI',Arial,sans-serif; font-size:56px; font-weight:900; letter-spacing:8px; text-transform:uppercase; color:#0f172a;">TALENT<span style="color:#C5A059;">IQ</span></span>
             </div>
           </div>
-        </div>`;
-    };
 
-    /** Converts an image URL to a base64 data URI for html2canvas compatibility. */
-    const getImageAsBase64 = async (url) => {
-        try {
-            const res = await fetch(url);
-            const blob = await res.blob();
-            return await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(blob);
-            });
-        } catch {
-            return '';
-        }
+          <!-- Main Content -->
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; z-index: 2; padding-bottom: 60px;">
+            
+            <h1 style="font-family:'Segoe UI',Arial,sans-serif; font-size:16px; font-weight:700; color:#C5A059; letter-spacing:10px; text-transform:uppercase; margin:0 0 24px 0;">
+              ${certType}
+            </h1>
+            
+            <p style="font-size:18px; font-style:italic; color:#475569; margin:0 0 30px 0;">
+              This certificate is proudly presented to
+            </p>
+            
+            <!-- Recipient Name -->
+            <div style="font-size:64px; font-weight:700; margin:0 0 20px 0; padding: 0 60px; border-bottom: 3px solid #C5A059; display:inline-block;">
+              ${studentName}
+            </div>
+            
+            <!-- Citation -->
+            <p style="font-family:'Segoe UI',Arial,sans-serif; font-size:20px; color:#334155; max-width:850px; line-height:2.2; text-align:center; margin:36px 0 0 0;">
+              for demonstrating <em style="font-style:italic; font-weight:600; color:#0d1b2e;">exceptional coding proficiency</em> and securing<br/>
+              <span style="display:inline-block; margin:16px 0;">
+                <span style="background:${rank===1?'rgba(212,175,55,0.15)':rank===2?'rgba(168,169,173,0.15)':rank===3?'rgba(205,127,50,0.15)':'rgba(59,130,246,0.1)'}; border:2px solid ${medalColor}; color:${medalDark}; font-weight:800; padding:8px 24px; border-radius:30px; font-size:20px; margin:0 6px;">${rankLabel}</span>
+              </span><br/>
+              in <strong style="color:#1E3A8A; font-weight:700;">&ldquo;${contestTitle}&rdquo;</strong> — organized on the <strong style="color:#92400E; font-weight:700;">TalentIQ Platform</strong>.
+            </p>
+
+          </div>
+
+          <!-- Left: Gold Badge (Absolutely Positioned) -->
+          <div style="position: absolute; bottom: 120px; left: 75px; z-index: 10;">
+            <svg width="120" height="152" viewBox="0 0 150 190" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="ribRedL" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#7F1D1D"/>
+                  <stop offset="50%" stop-color="#DC2626"/>
+                  <stop offset="100%" stop-color="#7F1D1D"/>
+                </linearGradient>
+                <linearGradient id="ribRedR" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#7F1D1D"/>
+                  <stop offset="50%" stop-color="#DC2626"/>
+                  <stop offset="100%" stop-color="#7F1D1D"/>
+                </linearGradient>
+                <radialGradient id="goldOuter" cx="40%" cy="40%" r="60%">
+                  <stop offset="0%" stop-color="#FDE08B"/>
+                  <stop offset="50%" stop-color="#D4AF37"/>
+                  <stop offset="100%" stop-color="#997A00"/>
+                </radialGradient>
+                <radialGradient id="goldInner" cx="40%" cy="30%" r="60%">
+                  <stop offset="0%" stop-color="#FFF5C0"/>
+                  <stop offset="60%" stop-color="#D4AF37"/>
+                  <stop offset="100%" stop-color="#B8860B"/>
+                </radialGradient>
+                <radialGradient id="goldDome" cx="35%" cy="35%" r="65%">
+                  <stop offset="0%" stop-color="#FFF5C0"/>
+                  <stop offset="30%" stop-color="#E5C158"/>
+                  <stop offset="80%" stop-color="#B8860B"/>
+                  <stop offset="100%" stop-color="#7A5C00"/>
+                </radialGradient>
+                
+                <g id="scallop">
+                  <circle cx="0" cy="-48" r="9" fill="url(#goldOuter)"/>
+                </g>
+                <g id="scallops4">
+                  <use href="#scallop" />
+                  <use href="#scallop" transform="rotate(22.5)" />
+                  <use href="#scallop" transform="rotate(45)" />
+                  <use href="#scallop" transform="rotate(67.5)" />
+                </g>
+                <g id="scallops16">
+                  <use href="#scallops4" />
+                  <use href="#scallops4" transform="rotate(90)" />
+                  <use href="#scallops4" transform="rotate(180)" />
+                  <use href="#scallops4" transform="rotate(270)" />
+                </g>
+              </defs>
+
+              <!-- Left Ribbon -->
+              <g transform="translate(15, 0)">
+                <path d="M 40 80 L 10 185 L 45 160 L 75 185 L 55 80 Z" fill="url(#ribRedL)" stroke="#997A00" stroke-width="1"/>
+                <path d="M 37 90 L 16 175 L 45 152 L 69 175 L 52 90" fill="none" stroke="#FDE08B" stroke-width="2"/>
+              </g>
+
+              <!-- Right Ribbon -->
+              <g transform="translate(-15, 0)">
+                <path d="M 110 80 L 140 185 L 105 160 L 75 185 L 95 80 Z" fill="url(#ribRedR)" stroke="#997A00" stroke-width="1"/>
+                <path d="M 113 90 L 134 175 L 105 152 L 81 175 L 98 90" fill="none" stroke="#FDE08B" stroke-width="2"/>
+              </g>
+
+              <!-- Badge Core -->
+              <g transform="translate(75, 75)">
+                <!-- Drop shadow -->
+                <circle cx="0" cy="5" r="50" fill="rgba(0,0,0,0.2)" filter="blur(4px)"/>
+                
+                <!-- Scalloped Edge -->
+                <use href="#scallops16" />
+                <circle cx="0" cy="0" r="48" fill="url(#goldOuter)" />
+                
+                <!-- Inner Ridge 1 -->
+                <circle cx="0" cy="0" r="45" fill="none" stroke="#FDE08B" stroke-width="1.5" />
+                <!-- Inner Ridge 2 (Dark inset) -->
+                <circle cx="0" cy="0" r="38" fill="none" stroke="#997A00" stroke-width="2" />
+                
+                <!-- Main flat surface -->
+                <circle cx="0" cy="0" r="37" fill="url(#goldInner)" />
+                
+                <!-- Center Dome -->
+                <circle cx="0" cy="0" r="26" fill="url(#goldDome)" />
+                <!-- Dome highlight border -->
+                <circle cx="0" cy="0" r="26" fill="none" stroke="#FFF5C0" stroke-width="1" opacity="0.6" />
+              </g>
+            </svg>
+          </div>
+
+          <!-- Divider -->
+          <div style="width: 85%; height:1px; background:linear-gradient(90deg,transparent,rgba(197,160,89,0.35),transparent); z-index:3; margin: 0 auto 16px auto;"></div>
+
+          <!-- Full Width Horizontal Creators -->
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; z-index: 2; padding: 0 60px 16px 60px;">
+              <span style="font-family:'Segoe UI',sans-serif; font-size:14px; font-weight:600; color:#64748B; letter-spacing:2.5px; text-transform:uppercase;">TalentIQ made by</span>
+              <span style="font-family:Georgia,serif; font-weight:700; font-size:20px; color:#334155;">Dharmik Kumbhani</span>
+              <span style="color:#C5A059; font-size:16px;">✦</span>
+              <span style="font-family:Georgia,serif; font-weight:700; font-size:20px; color:#334155;">Vrund Patel</span>
+              <span style="color:#C5A059; font-size:16px;">✦</span>
+              <span style="font-family:Georgia,serif; font-weight:700; font-size:20px; color:#334155;">Harshvardhansinh Parmar</span>
+          </div>
+
+        </div>`;
     };
 
     /** Renders a certificate HTML string off-screen and returns a base64 PNG string. */
@@ -290,15 +312,9 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
         const html2canvas = (await import('html2canvas')).default;
         const date = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Pre-fetch logos as base64 so html2canvas can render them
-        const [csiLogoB64, bvmLogoB64] = await Promise.all([
-            getImageAsBase64('/csi-logo.jpg'),
-            getImageAsBase64('/bvm-logo.png'),
-        ]);
-
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;';
-        wrapper.innerHTML = buildCertificateHTML(studentName, contestTitle, rank, date, csiLogoB64, bvmLogoB64);
+        wrapper.innerHTML = buildCertificateHTML(studentName, contestTitle, rank, date);
         document.body.appendChild(wrapper);
 
         try {
@@ -306,7 +322,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                 scale: 2,
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#0b1120',
+                backgroundColor: '#FDFCF7',
             });
             // Return raw base64 (no data-url prefix) for the API
             return canvas.toDataURL('image/png').split(',')[1];
@@ -794,7 +810,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                     📜 Official Certificate Preview
                                 </h3>
                                 <p className="text-xs text-[#94A3B8] mt-0.5">
-                                    Computer Society of India (CSI) BVM Student Chapter &middot; {previewModalData.name} ({previewModalData.rank === 1 ? '1st Place' : previewModalData.rank === 2 ? '2nd Place' : '3rd Place'})
+                                    TalentIQ Coding Platform &middot; {previewModalData.name} ({previewModalData.rank === 1 ? '1st Place' : previewModalData.rank === 2 ? '2nd Place' : '3rd Place'})
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
@@ -813,13 +829,17 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                             </div>
                         </div>
 
-                        {/* Certificate Render Container */}
-                        <div className="flex justify-center bg-[#070a12] p-4 rounded-xl overflow-x-auto border border-white/5">
-                            <div 
-                                dangerouslySetInnerHTML={{ 
-                                    __html: buildCertificateHTML(previewModalData.name, previewModalData.title, previewModalData.rank, previewModalData.date, logoCache.csi, logoCache.bvm) 
-                                }} 
-                            />
+                        {/* Certificate Render Container with scaling to fit screen */}
+                        <div className="flex justify-center bg-[#070a12] rounded-xl border border-white/5 p-4 overflow-auto max-w-full">
+                            <div style={{ width: '561.5px', height: '397px', overflow: 'hidden', flexShrink: 0 }}>
+                                <div style={{ transform: 'scale(0.5)', transformOrigin: 'top left' }}>
+                                    <div 
+                                        dangerouslySetInnerHTML={{ 
+                                            __html: buildCertificateHTML(previewModalData.name, previewModalData.title, previewModalData.rank, previewModalData.date) 
+                                        }} 
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
