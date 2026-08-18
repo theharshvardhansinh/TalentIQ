@@ -41,27 +41,51 @@ export async function GET(req, { params }) {
             };
         });
 
-        // ── 2. Per-user: which unique problems did they solve (at least one Accepted)
+        // ── 2. Per-user: which unique problems did they solve (or partially solve)
         const solvedAgg = await Submission.aggregate([
             {
                 $match: {
-                    contestId: contestObjId,
-                    status: 'Accepted',
+                    contestId: contestObjId
                 }
             },
             {
-                // Deduplicate: one entry per (user, problem)
+                $addFields: {
+                    passRatio: {
+                        $cond: {
+                            if: { $gt: ['$totalCount', 0] },
+                            then: { $divide: ['$passedCount', '$totalCount'] },
+                            else: {
+                                $cond: { if: { $eq: ['$status', 'Accepted'] }, then: 1, else: 0 }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                // Group by user & problem to find the max pass ratio
                 $group: {
                     _id: { userId: '$userId', problemSlug: '$problemSlug' },
-                    firstAcceptedAt: { $min: '$createdAt' },
+                    maxPassRatio: { $max: '$passRatio' },
+                    firstAcceptedAt: { 
+                        $min: {
+                            $cond: { if: { $eq: ['$status', 'Accepted'] }, then: '$createdAt', else: null }
+                        }
+                    }
                 }
             },
             {
-                // Group by user: collect slug list and count
+                // Group by user: collect scores and count fully solved
                 $group: {
                     _id: '$_id.userId',
-                    solvedSlugs: { $push: '$_id.problemSlug' },
-                    solvedCount: { $sum: 1 },
+                    problemScores: { 
+                        $push: { 
+                            slug: '$_id.problemSlug', 
+                            ratio: '$maxPassRatio' 
+                        } 
+                    },
+                    solvedCount: { 
+                        $sum: { $cond: { if: { $eq: ['$maxPassRatio', 1] }, then: 1, else: 0 } }
+                    },
                     lastSolvedAt: { $max: '$firstAcceptedAt' },
                 }
             }
@@ -70,8 +94,11 @@ export async function GET(req, { params }) {
         // ── 3. Build a map userId → solved info ────────────────────────────────
         const solvedMap = {};
         solvedAgg.forEach(row => {
+            // for compatibility with frontend pill icons, include slugs where they got > 0 ratio
+            const attemptedSlugs = row.problemScores.filter(p => p.ratio > 0).map(p => p.slug);
             solvedMap[row._id.toString()] = {
-                solvedSlugs: row.solvedSlugs,
+                problemScores: row.problemScores,
+                solvedSlugs: attemptedSlugs,
                 solvedCount: row.solvedCount,
                 lastSolvedAt: row.lastSolvedAt,
             };
@@ -95,12 +122,12 @@ export async function GET(req, { params }) {
         // ── 6. Build leaderboard rows ──────────────────────────────────────────
         const rows = users.map(u => {
             const uid = u._id.toString();
-            const info = solvedMap[uid] || { solvedSlugs: [], solvedCount: 0, lastSolvedAt: null };
+            const info = solvedMap[uid] || { problemScores: [], solvedSlugs: [], solvedCount: 0, lastSolvedAt: null };
             
-            // Calculate total marks earned by this user
-            let userMarks = 0;
-            info.solvedSlugs.forEach(slug => {
-                userMarks += problemDifficultyMap[slug] || 0;
+            // Calculate total marks earned by this user (can be decimal)
+            let rawUserMarks = 0;
+            info.problemScores.forEach(ps => {
+                rawUserMarks += (problemDifficultyMap[ps.slug] || 0) * ps.ratio;
             });
 
             return {
@@ -113,15 +140,16 @@ export async function GET(req, { params }) {
                 lastSolvedAt: info.lastSolvedAt,
                 // Score: percentage of marks earned out of total marks
                 score: totalContestMarks > 0
-                    ? Math.round((userMarks / totalContestMarks) * 100)
+                    ? Math.round((rawUserMarks / totalContestMarks) * 100)
                     : 0,
-                scorePoints: userMarks,
+                scorePoints: Math.round(rawUserMarks), // Rounded for display as requested
+                rawScorePoints: rawUserMarks, // Kept for exact sorting
             };
         });
 
-        // Sort: most points first, then earliest last-solved (tiebreak)
+        // Sort: most exact points first, then earliest last-solved (tiebreak)
         rows.sort((a, b) => {
-            if (b.scorePoints !== a.scorePoints) return b.scorePoints - a.scorePoints;
+            if (b.rawScorePoints !== a.rawScorePoints) return b.rawScorePoints - a.rawScorePoints;
             if (a.lastSolvedAt && b.lastSolvedAt) return new Date(a.lastSolvedAt) - new Date(b.lastSolvedAt);
             return 0;
         });

@@ -195,6 +195,8 @@ export async function POST(req) {
             code,
             language,
             status: finalStatus,
+            passedCount,
+            totalCount: problem.testCases.length,
             contestId: contestId || null
         });
 

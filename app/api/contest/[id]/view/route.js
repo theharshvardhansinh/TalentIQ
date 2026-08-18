@@ -83,21 +83,22 @@ export async function GET(req, { params }) {
         const submissions = await Submission.find({
             userId: session.user.id,
             problemSlug: { $in: problemSlugs },
-            contestId: id // Ensure we only count submissions made for this specific contest
-        }).select('problemSlug status').lean();
+            contestId: id
+        }).select('problemSlug status passedCount totalCount').lean();
 
-        // Create a map of slug -> status
-        // Prioritize 'Accepted' > 'Attempted' (any other status)
-        const statusMap = {};
+        // Find the max pass ratio for each problem
+        const scoreMap = {};
 
         submissions.forEach(sub => {
-            const current = statusMap[sub.problemSlug];
-            if (current === 'solved') return; // Already solved, don't downgrade
-
-            if (sub.status === 'Accepted') {
-                statusMap[sub.problemSlug] = 'solved';
+            let passRatio = 0;
+            if (sub.totalCount > 0) {
+                passRatio = sub.passedCount / sub.totalCount;
             } else {
-                statusMap[sub.problemSlug] = 'attempted';
+                passRatio = sub.status === 'Accepted' ? 1 : 0;
+            }
+            
+            if (!scoreMap[sub.problemSlug] || passRatio > scoreMap[sub.problemSlug]) {
+                scoreMap[sub.problemSlug] = passRatio;
             }
         });
 
@@ -107,24 +108,27 @@ export async function GET(req, { params }) {
         let totalMarks = 0;
 
         const problemsWithStatus = contest.problems.map(prob => {
-            const status = statusMap[prob.slug] || 'unsolved';
+            const ratio = scoreMap[prob.slug] || 0;
             const diff = prob.difficulty || 'Medium';
             const marks = diff === 'Easy' ? 2 : diff === 'Hard' ? 6 : 4;
             
             totalMarks += marks;
-            if (status === 'solved') {
-                earnedScore++;
-                userMarks += marks;
+            
+            let status = 'unsolved';
+            if (ratio === 1) {
+                status = 'solved';
+                earnedScore++; // Fully solved count
+            } else if (ratio > 0) {
+                status = 'attempted';
             }
+
+            userMarks += (marks * ratio);
+
             return {
                 ...prob,
                 userStatus: status
             };
         });
-
-        // Calculate 'userScore' (assuming 1 point per problem for now, or sum of difficulty weights)
-        // User requested 'userScore'. Let's return the count of solved problems as the score for simplicity 
-        // effectively same as the leaderboard logic.
 
         return NextResponse.json({
             success: true,
@@ -133,8 +137,8 @@ export async function GET(req, { params }) {
                 problems: problemsWithStatus,
                 status: isEnded ? 'past' : (isUpcoming ? 'upcoming' : 'live'),
                 isEnded: isEnded,
-                userScore: earnedScore,
-                userMarks: userMarks,
+                userScore: earnedScore, // Count of fully solved problems
+                userMarks: Math.round(userMarks), // Rounded marks as requested
                 totalMarks: totalMarks,
                 totalProblems: contest.problems.length,
                 isRegistered: isRegistered

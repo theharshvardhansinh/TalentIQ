@@ -27,6 +27,14 @@ const SubmissionSchema = new mongoose.Schema({
         enum: ['Pending', 'Accepted', 'Wrong Answer', 'Time Limit Exceeded', 'Runtime Error', 'Compilation Error'],
         default: 'Pending',
     },
+    passedCount: {
+        type: Number,
+        default: 0,
+    },
+    totalCount: {
+        type: Number,
+        default: 0,
+    },
     createdAt: {
         type: Date,
         default: Date.now,
