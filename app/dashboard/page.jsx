@@ -28,6 +28,20 @@ export default async function DashboardPage() {
 
     await dbConnect();
 
+    // Prevent student from leaving an active contest
+    if (sessionUser.role === 'student') {
+        const activeContest = await Contest.findOne({
+            registeredUsers: userId,
+            exitedUsers: { $ne: userId },
+            startTime: { $lte: new Date() },
+            endTime: { $gt: new Date() }
+        });
+
+        if (activeContest) {
+            redirect(`/contest/${activeContest._id}`);
+        }
+    }
+
     let solvedCount = 0;
     let contestsParticipated = 0;
     let acceptanceRate = 0;

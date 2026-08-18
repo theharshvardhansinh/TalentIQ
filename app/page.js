@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { Sparkles, ArrowRightIcon } from 'lucide-react';
 import { getSession } from '@/lib/auth';
+import dbConnect from '@/lib/db';
+import Contest from '@/models/Contest';
+import { redirect } from 'next/navigation';
 import Hero from './components/home/Hero';
 import Footer from './components/home/Footer';
 import TopCreatorsBar from './components/TopCreatorsBar';
@@ -13,6 +16,21 @@ export const metadata = {
 export default async function Home() {
   const session = await getSession();
   const sessionUser = session?.user;
+
+  // Prevent student from browsing the home page if they are in an active contest
+  if (sessionUser && sessionUser.role === 'student') {
+      await dbConnect();
+      const activeContest = await Contest.findOne({
+          registeredUsers: sessionUser.id || sessionUser._id,
+          exitedUsers: { $ne: sessionUser.id || sessionUser._id },
+          startTime: { $lte: new Date() },
+          endTime: { $gt: new Date() }
+      });
+
+      if (activeContest) {
+          redirect(`/contest/${activeContest._id}`);
+      }
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden selection:bg-primary/20 selection:text-primary">
