@@ -160,10 +160,10 @@ export default function ProblemPage({ params: paramsPromise }) {
     const LANG_KEY = `autosave_lang_${params.contestId}_${params.slug}`;
 
     const templates = {
-        c: `// Write your C code here\n#include <stdio.h>\n\nint main() {\n    // your code goes here\n    return 0;\n}`,
-        cpp: `// Write your C++ code here\n#include <iostream>\nusing namespace std;\n\nint main() {\n    // your code goes here\n    return 0;\n}`,
-        java: `// Write your Java code here\npublic class Main {\n    public static void main(String[] args) {\n        // your code goes here\n    }\n}`,
-        python: `# Write your Python code here\n\ndef solve():\n    # your code goes here\n    pass\n\nif __name__ == "__main__":\n    solve()`,
+        c: `#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nint main() {\n    // your code goes here\n    return 0;\n}`,
+        cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    // your code goes here\n    return 0;\n}`,
+        java: `import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        // your code goes here\n    }\n}`,
+        python: `import sys\nfrom collections import *\n\ndef solve():\n    # your code goes here\n    pass\n\nif __name__ == "__main__":\n    solve()`,
         javascript: `// Write your JavaScript code here\n\nfunction solve() {\n    // your code goes here\n}\n\nsolve();`
     };
 

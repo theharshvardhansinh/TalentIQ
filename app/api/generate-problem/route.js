@@ -87,17 +87,17 @@ export async function POST(req) {
                         { "input": "...", "output": "...", "isPublic": false }
                     ],
                     "starterCode": {
-                        "c": "int solve(...) {\\n    // ...\\n}",
-                        "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
-                        "java": "class Solution {\\n    // ...\\n}",
-                        "python": "class Solution:\\n    def solve(self, ...):",
+                        "c": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n\\nint solve(...) {\\n    // ...\\n}",
+                        "cpp": "#include <bits/stdc++.h>\\nusing namespace std;\\n\\nclass Solution {\\npublic:\\n    // ...\\n};",
+                        "java": "import java.util.*;\\nimport java.io.*;\\n\\nclass Solution {\\n    // ...\\n}",
+                        "python": "import sys\\nfrom collections import *\\n\\nclass Solution:\\n    def solve(self, ...):",
                         "javascript": "var solve = function(...) {"
                     },
                     "driverCode": {
-                        "c": "#include <stdio.h>\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call solve, print */ return 0; }",
-                        "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
-                        "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
-                        "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
+                        "c": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call solve, print */ return 0; }",
+                        "cpp": "#include <bits/stdc++.h>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
+                        "java": "import java.util.*;\\nimport java.io.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
+                        "python": "import sys\\nfrom collections import *\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
                         "javascript": "const fs = require('fs');\\n\\n{{USER_CODE}}\\n\\nfunction main() { /* parse stdin, call solve, print */ }\\nmain();"
                     }
                 }
@@ -170,17 +170,17 @@ export async function POST(req) {
                         { "input": "...", "output": "...", "isPublic": false }
                     ],
                     "starterCode": {
-                        "c": "int solve(...) {\\n    // ...\\n}",
-                        "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
-                        "java": "class Solution {\\n    // ...\\n}",
-                        "python": "class Solution:\\n    def solve(self, ...):",
+                        "c": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n\\nint solve(...) {\\n    // ...\\n}",
+                        "cpp": "#include <bits/stdc++.h>\\nusing namespace std;\\n\\nclass Solution {\\npublic:\\n    // ...\\n};",
+                        "java": "import java.util.*;\\nimport java.io.*;\\n\\nclass Solution {\\n    // ...\\n}",
+                        "python": "import sys\\nfrom collections import *\\n\\nclass Solution:\\n    def solve(self, ...):",
                         "javascript": "var solve = function(...) {"
                     },
                     "driverCode": {
-                        "c": "#include <stdio.h>\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call solve, print */ return 0; }",
-                        "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
-                        "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
-                        "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
+                        "c": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call solve, print */ return 0; }",
+                        "cpp": "#include <bits/stdc++.h>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
+                        "java": "import java.util.*;\\nimport java.io.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
+                        "python": "import sys\\nfrom collections import *\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
                         "javascript": "const fs = require('fs');\\n\\n{{USER_CODE}}\\n\\nfunction main() { /* parse stdin, call solve, print */ }\\nmain();"
                     }
                 }
@@ -258,17 +258,17 @@ export async function POST(req) {
                         { "input": "hidden3", "output": "hidden_output3", "isPublic": false }
                     ],
                     "starterCode": {
-                        "c": "int solve(...) {\\n    // ...\\n}",
-                        "cpp": "class Solution {\\npublic:\\n    // ...\\n};",
-                        "java": "class Solution {\\n    // ...\\n}",
-                        "python": "class Solution:\\n    def solve(self, ...):",
+                        "c": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n\\nint solve(...) {\\n    // ...\\n}",
+                        "cpp": "#include <bits/stdc++.h>\\nusing namespace std;\\n\\nclass Solution {\\npublic:\\n    // ...\\n};",
+                        "java": "import java.util.*;\\nimport java.io.*;\\n\\nclass Solution {\\n    // ...\\n}",
+                        "python": "import sys\\nfrom collections import *\\n\\nclass Solution:\\n    def solve(self, ...):",
                         "javascript": "var solve = function(...) {"
                     },
                     "driverCode": {
-                        "c": "#include <stdio.h>\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call solve, print */ return 0; }",
-                        "cpp": "#include <iostream>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
-                        "java": "import java.util.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
-                        "python": "import sys\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
+                        "c": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call solve, print */ return 0; }",
+                        "cpp": "#include <bits/stdc++.h>\\nusing namespace std;\\n\\n{{USER_CODE}}\\n\\nint main() { /* parse stdin, call Solution, print */ return 0; }",
+                        "java": "import java.util.*;\\nimport java.io.*;\\n\\n{{USER_CODE}}\\n\\npublic class Main { public static void main(String[] args) { /* parse stdin, call Solution, print */ } }",
+                        "python": "import sys\\nfrom collections import *\\n\\n{{USER_CODE}}\\n\\nif __name__ == '__main__':\\n    # parse stdin, call Solution, print",
                         "javascript": "const fs = require('fs');\\n\\n{{USER_CODE}}\\n\\nfunction main() { /* parse stdin, call solve, print */ }\\nmain();"
                     }
                 }
