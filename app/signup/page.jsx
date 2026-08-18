@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
 
 
 export default function SignupPage() {
@@ -17,6 +17,7 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [emailValid, setEmailValid] = useState(null); // null, true, false
+    const [showPassword, setShowPassword] = useState(false);
 
     const emailRegex = /^[0-9]{2}[a-z]{2}[0-9]{3}@bvmengineering\.ac\.in$/;
 
@@ -62,7 +63,7 @@ export default function SignupPage() {
                 throw new Error(data.error || 'Something went wrong');
             }
 
-            router.push('/login?registered=true');
+            router.push('/dashboard');
         } catch (err) {
             setError(err.message);
         } finally {
@@ -130,29 +131,40 @@ export default function SignupPage() {
                     </div>
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-slate-400 mb-2">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="••••••••"
-                            className="w-full px-4 py-3 bg-slate-800 border border-primary/10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-white placeholder-slate-600 transition-all"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="••••••••"
+                                className="w-full pl-4 pr-10 py-3 bg-slate-800 border border-primary/10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-white placeholder-slate-600 transition-all"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-3.5 text-slate-400 hover:text-white transition-colors"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-400 mb-2">Confirm Password</label>
-                        <input
-                            id="confirmPassword"
-                            type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            placeholder="••••••••"
-                            className="w-full px-4 py-3 bg-slate-800 border border-primary/10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-white placeholder-slate-600 transition-all"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                id="confirmPassword"
+                                type={showPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                placeholder="••••••••"
+                                className="w-full pl-4 pr-10 py-3 bg-slate-800 border border-primary/10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-white placeholder-slate-600 transition-all"
+                                required
+                            />
+                        </div>
                     </div>
                     <button type="submit" disabled={loading}
                         className="w-full py-3 px-4 mt-2 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg shadow-lg shadow-[#3B82F6]/20 transition-all duration-200 flex items-center justify-center">
