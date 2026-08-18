@@ -83,7 +83,7 @@ export default async function DashboardPage() {
 
             <main className="relative z-10 max-w-7xl mx-auto px-6 py-10 w-full">
                 <div className="mb-10">
-                    <h2 className="text-3xl font-bold text-white mb-2">Welcome Back, {sessionUser.name.split(' ')[0]}</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">Welcome Back, {sessionUser.name.split(' ')[0]} <br/> <span className="text-blue-500 text-5xl md:text-6xl mt-4 inline-block">Think. Code. Conquer.</span></h2>
                     <p className="text-[#94A3B8]">Here is your progress overview.</p>
                 </div>
                 <StatsSection
