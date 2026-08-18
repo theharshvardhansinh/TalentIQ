@@ -331,17 +331,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
         }
     };
 
-    const handleDownloadCert = async (studentName, contestTitle, rank) => {
-        try {
-            const pngBase64 = await generateCertificatePNG(studentName, contestTitle, rank);
-            const a = document.createElement("a");
-            a.href = "data:image/png;base64," + pngBase64;
-            a.download = `Certificate_${studentName.replace(/\s+/g, '_')}_Rank${rank}.png`;
-            a.click();
-        } catch (error) {
-            console.error("Download failed", error);
-        }
-    };
+
 
     const handleSendCertificates = async () => {
         if (!confirm('Generate PNG certificates and send to the top 3 winners?')) return;
@@ -605,15 +595,7 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                                                 >
                                                                     <Eye className="w-3 h-3" /> Preview
                                                                 </button>
-                                                                <button 
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDownloadCert(student.name, contest.title, index + 1);
-                                                                    }}
-                                                                    className="text-[10px] font-semibold text-[#F59E0B] hover:text-white transition-colors bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 px-2 py-0.5 rounded cursor-pointer border border-[#F59E0B]/20 flex items-center gap-1"
-                                                                >
-                                                                    <Download className="w-3 h-3" /> Download
-                                                                </button>
+
                                                             </div>
                                                         )}
                                                     </div>
@@ -814,12 +796,6 @@ export default function ContestLeaderboard({ contest, onBack, isVolunteer }) {
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => handleDownloadCert(previewModalData.name, previewModalData.title, previewModalData.rank)}
-                                    className="px-4 py-2 bg-[#F59E0B] hover:bg-[#D97706] text-[#0A0E1A] font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
-                                >
-                                    <Download className="w-4 h-4" /> Download PNG
-                                </button>
                                 <button
                                     onClick={() => setPreviewModalData(null)}
                                     className="p-2 text-[#94A3B8] hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
