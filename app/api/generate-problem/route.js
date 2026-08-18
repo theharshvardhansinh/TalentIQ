@@ -30,8 +30,8 @@ export async function POST(req) {
         }
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         // gemini-flash-latest is the one that exists (gave 503 previously). 1.5-flash gave 404.
-        console.log("Using Gemini model: gemini-flash-latest");
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        console.log("Using Gemini model: gemini-3.6-flash");
+        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
 
         // Helper for 503 Retries
         async function generateWithRetry(payload, retries = 3) {
