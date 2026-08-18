@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export async function POST(req) {
     try {
@@ -32,13 +33,46 @@ export async function POST(req) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await User.create({
+        const newUser = await User.create({
             name,
             email,
             password: hashedPassword,
         });
 
-        return NextResponse.json({ message: 'User created successfully' }, { status: 201 });
+        const token = jwt.sign(
+            { userId: newUser._id, email: newUser.email, role: newUser.role || 'student' },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' } // Access token valid for 1 day
+        );
+
+        const refreshToken = jwt.sign(
+            { userId: newUser._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        const response = NextResponse.json({
+            message: 'User created and logged in successfully',
+            role: newUser.role || 'student'
+        }, { status: 201 });
+
+        response.cookies.set('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 60 * 60 * 24, // 1 day
+            path: '/',
+        });
+
+        response.cookies.set('refresh_token', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/',
+        });
+
+        return response;
     } catch (error) {
         console.error('Signup error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
